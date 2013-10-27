@@ -21,11 +21,13 @@ class Sheep implements Plugin {
         $this->server = ServerAPI::request();
         
         $this->config = new Config($this->api->plugin->configPath($this) . "config.yml", CONFIG_YAML, array(
-        "update-interval": 24,
-        "update-auto": true,
-        "api-url": "http://mcpedevs.pocketmine.net/api.php?ID=",
-        "plugins-installed": implode(", ", $this->api->plugin->getList()),
+        "update-interval" => 24,
+        "update-auto" => true,
+        "api-url" => "http://mcpedevs.pocketmine.net/api.php?ID=",
+        "plugins-installed" => strtolower(implode(", ", $this->api->plugin->getList())),
         ));
+        console("[Sheep] Loaded Sheep!");
+        console("[Sheep] Plugins currently loaded:" . $this->config["plugins-installed"]);
     }
 }
 
