@@ -29,6 +29,14 @@ class Sheep implements Plugin {
         console("[Sheep] Loaded Sheep!");
         console("[Sheep] Plugins currently loaded:" . $this->config["plugins-installed"]);
     }
+    
+    public function init(){
+        $this->api->console->register("sheep", "Sheep version 1.0", array($this, "cmdHandle"));
+    }
+    
+    public function cmdHandle(){
+        
+    }
 }
 
 ?>
