@@ -25,6 +25,7 @@ class Sheep implements Plugin {
         "update-auto" => true,
         "api-url" => "http://mcpedevs.pocketmine.net/api.php?ID=",
         "plugins-installed" => strtolower(implode(", ", $this->api->plugin->getList())),
+        "plugin-dir" => DATA_PATH . "plugins"
         ));
         console("[Sheep] Loaded Sheep!");
         console("[Sheep] Plugins currently loaded:" . $this->config["plugins-installed"]);
@@ -45,10 +46,14 @@ class Sheep implements Plugin {
                             $url = $this->config["api-url"];
                             $derp = implode("", array($url, $params[1]));
                             $fetch = json_decode(Utils::curl_get($derp));
-                            if($fetch["error"]){
-                                console("Unexpected error occured. Check that the plugin ID is correct.");
-                            } elseif($fetch["link"]){
-                                
+                            if(isset($fetch["error"])){
+                                $output = "An unexpected error occured. Check that the plugin ID is correct.";
+                            } elseif(isset($fetch["link"])){
+                                $fp = fopen($this->config["plugin-dir"] . $fetch["title"], "w+");
+                                $content = Utils::curl_get($fetch["link"]);
+                                fwrite($fp, $content);
+                                $this->api->plugin->load($fetch["title"]);
+                                $output = "Successfully downloaded and installed plugin " . $fetch["title"] . ".";
                             }
                         }
                 }
