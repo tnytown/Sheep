@@ -34,8 +34,26 @@ class Sheep implements Plugin {
         $this->api->console->register("sheep", "Sheep version 1.0", array($this, "cmdHandle"));
     }
     
-    public function cmdHandle(){
-        
+    public function cmdHandle($cmd, $params, $issuer){
+        switch($cmd){
+            case "sheep":
+                switch($params){
+                    case "install":
+                        if($params[1] == null || $params[1] == ""){
+                            $output = "[Sheep] No plugin specified to install.";
+                        } else {
+                            $url = $this->config["api-url"];
+                            $derp = implode("", array($url, $params[1]));
+                            $fetch = json_decode(Utils::curl_get($derp));
+                            if($fetch["error"]){
+                                console("Unexpected error occured. Check that the plugin ID is correct.");
+                            } elseif($fetch["link"]){
+                                
+                            }
+                        }
+                }
+        }
+        return $output;
     }
 }
 
