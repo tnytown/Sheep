@@ -27,8 +27,9 @@ class Sheep implements Plugin {
         //"plugins-installed" => strtolower(implode(", ", $this->api->plugin->getList())),
         "plugin-dir" => DATA_PATH . "plugins"
         ));
+        $this->config = $this->api->plugin->readYAML($this->api->plugin->configPath($this) . "config.yml");
         console("[Sheep] Loaded Sheep!");
-        //console("[Sheep] Plugins currently loaded:" . $this->config["plugins-installed"]);
+        console("[Sheep] Plugins currently loaded:" . $this->config["plugins-installed"]);
     }
     
     public function init(){
