@@ -24,11 +24,11 @@ class Sheep implements Plugin {
         "update-interval" => 24,
         "update-auto" => true,
         "api-url" => "http://mcpedevs.pocketmine.net/api.php?ID=",
-        "plugins-installed" => strtolower(implode(", ", $this->api->plugin->getList())),
+        //"plugins-installed" => strtolower(implode(", ", $this->api->plugin->getList())),
         "plugin-dir" => DATA_PATH . "plugins"
         ));
         console("[Sheep] Loaded Sheep!");
-        console("[Sheep] Plugins currently loaded:" . $this->config["plugins-installed"]);
+        //console("[Sheep] Plugins currently loaded:" . $this->config["plugins-installed"]);
     }
     
     public function init(){
