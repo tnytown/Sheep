@@ -49,16 +49,20 @@ class Sheep implements Plugin {
                             if(isset($fetch["error"])){
                                 $output = "An unexpected error occured. Check that the plugin ID is correct.";
                             } elseif(isset($fetch["link"])){
-                                $fp = fopen($this->config["plugin-dir"] . $fetch["title"], "w+");
+                                $fp = fopen($this->config["plugin-dir"] . $fetch["title"] . ".php", "w+");
                                 $content = Utils::curl_get($fetch["link"]);
                                 fwrite($fp, $content);
-                                $this->api->plugin->load($fetch["title"]);
+                                $this->api->plugin->load($fetch["title"] . ".php");
                                 $output = "Successfully downloaded and installed plugin " . $fetch["title"] . ".";
                             }
                         }
                 }
         }
         return $output;
+    }
+    
+    public function __destruct(){
+        
     }
 }
 
