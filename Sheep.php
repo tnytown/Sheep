@@ -33,10 +33,11 @@ class Sheep implements Plugin {
     }
     
     public function init(){
-        $this->api->console->register("sheep", "Sheep version 1.0", array($this, "cmdHandle"));
+        $this->api->console->register("sheep", "Sheep version 1.1", array($this, "cmdHandle"));
     }
     
     public function cmdHandle($cmd, $params, $issuer){
+        $output = "";
         switch($cmd){
             case "sheep":
                 switch($params){
