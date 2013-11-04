@@ -1,1 +1,1 @@
-All Rights Reserved where applicable. sekjun9878.info sekjun9878@gmail.com Copyright 2013.
+All Rights Reserved and credits to KnownUnown @ Github where applicable. sekjun9878.info sekjun9878@gmail.com Copyright 2013.
