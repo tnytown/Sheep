@@ -196,25 +196,31 @@ class Sheep implements Plugin {
             case "sheep":
                 switch($params[0]){
                     case "install":
+						console("[Sheep] Installing...\n");
                         if(!isset($params[1]) or $params[1] == ""){
                             return "[Sheep] No plugin specified to install.";
                         }
-                        $url = $this->config["api-url"];
-                        $fetch = json_decode(file_get_contents($url.$params[1]));
+                        $url = $this->config->get("api-url");
+						echo "$url$params[1]\n";
+                        $fetch = json_decode(file_get_contents($url.$params[1]), true);
+						var_dump($fetch);
                         if(isset($fetch["error"])){
                             $output = "[Sheep] An unexpected error occured. Check that the plugin ID is correct.";
-                        } elseif(isset($fetch["link"])){
-	                        $plugin = file_get_contents($fetch["link"]);
+                        } elseif(isset($fetch['downloadInfo']["link"])){
+	                        console("[Sheep] Downloading...\n");
+	                        $plugin = file_get_contents($fetch['downloadInfo']["link"]);
+	                        console("[Sheep] Checking for Malware...\n");
 	                        foreach($this->questionableFunctionsList as $q)
 	                        {
 		                        if (strpos($plugin, $q) !== false) {
 			                        return "[Sheep] Plugin contains file system functions. Please contact an Administrator to have this installed.";
 		                        }
 	                        }
-                            file_put_contents($this->config["plugin-dir"].$fetch["title"].$fetch['filetype'], $plugin);
+                            //file_put_contents(DATA_PATH."/plugins/".$fetch["title"].$fetch['filetype'], $plugin);
                             $this->api->plugin->load($fetch["title"].$fetch['filetype']);
                             $output = "[Sheep] Successfully downloaded and installed plugin " . $fetch["title"] . " .";
                         }
+	                    console("[Sheep] Exiting...\n");
 		                break;
 	                case "uninstall":
 	                case "remove":
@@ -231,3 +237,4 @@ class Sheep implements Plugin {
 }
 
 ?>
+
