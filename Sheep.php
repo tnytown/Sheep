@@ -199,7 +199,7 @@ class Sheep implements Plugin {
                         if(!isset($params[1]) or $params[1] == ""){
                             return "[Sheep] No plugin specified to install.";
                         }
-                        $url = $this->config["api-url"];
+                        $url = $this->config->get("api-url");
                         $fetch = json_decode(file_get_contents($url.$params[1]));
                         if(isset($fetch["error"])){
                             $output = "[Sheep] An unexpected error occured. Check that the plugin ID is correct.";
@@ -211,7 +211,7 @@ class Sheep implements Plugin {
 			                        return "[Sheep] Plugin contains file system functions. Please contact an Administrator to have this installed.";
 		                        }
 	                        }
-                            file_put_contents($this->config["plugin-dir"].$fetch["title"].$fetch['filetype'], $plugin);
+                            file_put_contents($this->config->get("plugin-dir").$fetch["title"].$fetch['filetype'], $plugin);
                             $this->api->plugin->load($fetch["title"].$fetch['filetype']);
                             $output = "[Sheep] Successfully downloaded and installed plugin " . $fetch["title"] . " .";
                         }
