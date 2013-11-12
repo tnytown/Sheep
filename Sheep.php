@@ -14,11 +14,13 @@ class Sheep implements Plugin {
     private $api;
     private $server;
     private $config;
+    private $zip; 
     
     public function __construct(ServerAPI $api, $server = false){
         
         $this->api = $api;
         $this->server = ServerAPI::request();
+        $this->zip = new ZipArchive; //dependency on Zip class, PEAR
         
         $this->config = new Config($this->api->plugin->configPath($this) . "config.yml", CONFIG_YAML, array(
         "update-interval" => 24,
