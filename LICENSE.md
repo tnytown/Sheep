@@ -1,1 +1,2 @@
-All Rights Reserved and credits to KnownUnown @ Github where applicable. sekjun9878.info sekjun9878@gmail.com Copyright 2013.
+This project goes under the Sheep License, which means:
+All Rights are Reserved to the owner of this project (@KnownUnown), and key contributors (@sekjun9878). Thanks to @humerus for a little debugging!
