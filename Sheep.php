@@ -22,7 +22,17 @@ class Sheep implements Plugin {
     private $config;
     private $confirm;
 
-	private $questionableFunctionsList = array(
+	private $questionableFunctionsList;
+    
+    public function __construct(ServerAPI $api, $server = false){
+        $this->api = $api;
+        $this->server = ServerAPI::request();
+        
+        $this->config = new Config($this->api->plugin->configPath($this) . "config.yml", CONFIG_YAML, array(
+        "api-url" => "http://mcpedevs.pocketmine.net/api.php?ID=",
+        "auto-update" => true,
+        //"plugins-installed" => strtolower(implode(", ", $this->api->plugin->getList())),
+        "bad-functions" => array(
 		"passthru",
 		"exec",
 		"pnctl_exec",
@@ -175,17 +185,9 @@ class Sheep implements Plugin {
 		"touch",
 		"umask",
 		"unlink",
-	);
-    
-    public function __construct(ServerAPI $api, $server = false){
-        $this->api = $api;
-        $this->server = ServerAPI::request();
-        
-        $this->config = new Config($this->api->plugin->configPath($this) . "config.yml", CONFIG_YAML, array(
-        "api-url" => "http://mcpedevs.pocketmine.net/api.php?ID=",
-        "auto-update" => true,
-        //"plugins-installed" => strtolower(implode(", ", $this->api->plugin->getList())),
+	),
         ));
+        $this->questionableFunctionsList = $this->api->get("bad-functions");
         console("[Sheep] Loaded Sheep!");
     }
     
@@ -238,7 +240,11 @@ class Sheep implements Plugin {
 	                case "uninstall":
 	                case "remove":
 	                    switch($params[1]){
-	                        case ''
+	                        case '':
+	                            $output = "[Sheep] Plugin name cannot be blank!";
+	                        default:
+	                            unlink(DATA_PATH . DIRECTORY_SEPERATOR . "plugins" . DIRECTORY_SEPERATOR . $params[1]);
+	                            $output = "[Sheep] Successfully removed plugin named" . $params[1];
 	                    }
 		                break;
                 }
