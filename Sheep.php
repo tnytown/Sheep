@@ -4,8 +4,8 @@
 __PocketMine Plugin__
 name=Sheep
 author=KnownUnown
-version=1.0
-apiversion=9,10,11,12,13,14,15,16,17,18,19,20
+version=2.0
+apiversion=9,10,11
 class=Sheep
 */
 
@@ -21,7 +21,7 @@ class Sheep implements Plugin {
     private $server;
     private $config;
     private $confirm;
-
+    private $nOfPlugins;
 	private $questionableFunctionsList;
     
     public function __construct(ServerAPI $api, $server = false){
@@ -29,9 +29,10 @@ class Sheep implements Plugin {
         $this->server = ServerAPI::request();
         
         $this->config = new Config($this->api->plugin->configPath($this) . "config.yml", CONFIG_YAML, array(
-        "api-url" => "http://mcpedevs.pocketmine.net/api.php?ID=",
+        "api-url" => "http://forums.pocketmine.net/api.php",
         "auto-update" => true,
-        //"plugins-installed" => strtolower(implode(", ", $this->api->plugin->getList())),
+        "spapi-url" => null,
+        "spapi-enabled" => false,
         "bad-functions" => array(
 		"passthru",
 		"exec",
@@ -187,18 +188,30 @@ class Sheep implements Plugin {
 		"unlink",
 	),
         ));
+        if($this->config->get("spapi-enabled")){
+            if($this->config->get("spapi-url") == (null || "")){
+                if(!Utils::curl_post($this->config->get("spapi-url"), array($ip = $_SERVER["SERVER_ADDR"]))){
+                    console('[Sheep] ERROR: Unable to connect to remote SPanel API.');
+                } else {
+                console('[Sheep] SPanel has been enabled!');
+                }
+            } else {
+                console('[Sheep] SPanel is disabled.');
+            }
+        }
         $this->questionableFunctionsList = $this->api->get("bad-functions");
-        console("[Sheep] Loaded Sheep!");
+        $this->nOfPlugins = json_decode(file_get_contents($this->config->get("api-url")))['count'];
+        console("[Sheep] Loaded Sheep! Current count of plugins on PocketMine Forums: {$this->nOfPlugins}");
     }
     
     public function init(){
-        $this->api->console->register("sheep", "Sheep version 1.1", array($this, "cmdHandle"));
+        $this->api->console->register("sheep", "Sheep version 2.0", array($this, "cmdHandle"));
     }
     
     public function cmdHandle($cmd, $params, $issuer){
 	    if($issuer instanceof Player)
 	    {
-		    return "[Sheep] You are not allowed to use this command.";
+		    return "[Sheep] You are not allowed to use this command. Consider asking your administrator to enable user-install in sheep.yml.";
 	    }
 
         $output = "";
@@ -211,11 +224,9 @@ class Sheep implements Plugin {
                             return "[Sheep] No plugin specified to install.";
                         }
                         $url = $this->config->get("api-url");
-						echo "$url$params[1]\n";
                         $fetch = json_decode(file_get_contents($url.$params[1]), true);
-						var_dump($fetch);
                         if(isset($fetch["error"])){
-                            $output = "[Sheep] An unexpected error occured. Check that the plugin ID is correct.";
+                            $output = "[Sheep] An unexpected error occured. Check that the plugin name is correct.";
                         } elseif(isset($fetch['downloadInfo']["link"])){
 	                        console("[Sheep] Downloading...\n");
 	                        $plugin = file_get_contents($fetch['downloadInfo']["link"]);
@@ -230,18 +241,19 @@ class Sheep implements Plugin {
 		                        }
 	                        }
                             if(!$this->api->plugin->load($fetch["title"].$fetch['filetype'])){
-                                $output = "[Sheep] An internal error has occured."
+                                $output = "[Sheep] An internal error has occured.";
                             } else {
                             $output = "[Sheep] Successfully downloaded and installed plugin " . $fetch["title"] . " .";
                             }
                         }
-	                    console("[Sheep] Exiting...\n");
+	                    console("[Sheep] Installed plugin.\n");
 		                break;
 	                case "uninstall":
 	                case "remove":
 	                    switch($params[1]){
 	                        case '':
 	                            $output = "[Sheep] Plugin name cannot be blank!";
+                                break;
 	                        default:
 	                            unlink(DATA_PATH . DIRECTORY_SEPERATOR . "plugins" . DIRECTORY_SEPERATOR . $params[1]);
 	                            $output = "[Sheep] Successfully removed plugin named" . $params[1];
@@ -251,11 +263,17 @@ class Sheep implements Plugin {
         }
         return $output;
     }
-    
-    public function __destruct(){
+
+    public function derpUrl($name){
+        $api = $this->config->get("api-url");
+        $parsedjson = json_decode(file_get_contents($api));
         
     }
+    
+    public function __destruct(){
+        $this->config->save();
+        console('[Sheep] Sheep exiting! Bye!');
+    }
 }
-
 ?>
 
