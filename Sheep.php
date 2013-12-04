@@ -223,6 +223,9 @@ class Sheep implements Plugin {
         $output = "";
         switch($cmd){
             case "sheep":
+                if($params[0] == ""){
+                    $output = "Usage: /sheep install <Plugin Name>";
+                }
                 switch($params[0]){
                     case "install":
                         console("[Sheep] Installing...\n");
