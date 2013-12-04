@@ -202,7 +202,7 @@ class Sheep implements Plugin {
                 console('[Sheep] SPanel is disabled.');
             }
         }
-        $this->questionableFunctionsList = $this->api->get("bad-functions");
+        $this->questionableFunctionsList = $this->config->get("bad-functions");
         $this->nOfPlugins = json_decode(file_get_contents($this->config->get("api-url")), true);
         $this->nOfPlugins = $this->nOfPlugins["count"];
         console("[Sheep] Loaded Sheep! Current count of plugins on PocketMine Forums: {$this->nOfPlugins}");
@@ -242,17 +242,17 @@ class Sheep implements Plugin {
                             foreach($this->questionableFunctionsList as $q)
                             {
                                 if (strpos($plugin, $q) !== false) {
-                                    return "[Sheep] Plugin contains file system function(s). This plugin can be planning to do something nasty! To remove, do /sheep remove {$name}.";
-                                    $this->confirm = $dl;
-                                } else {
-                                    $this->putPlugin($plugin, $name);
+                                    console("[Sheep] Plugin contains file system function(s). This plugin can be planning to do something nasty! To remove, do /sheep remove {$name}.");
                                 }
                             }
-                            if(!$this->api->plugin->load($name . $this->getPluginType($plugin))){
-                                $output = "[Sheep] An internal error has occured.";
-                            } else {
-                                $output = "[Sheep] Successfully downloaded and installed plugin " . $name . " .";
-                            }
+                            $this->putPlugin($plugin, $name);
+                            //if(!$this->api->plugin->load($name . "." . $this->getPluginType($plugin))){
+                            console("[Sheep] Reloading plugins...");
+                            $this->api->plugin->loadAll();
+                            $this->api->plugin->initAll();
+                            //} else {
+                            $output = "[Sheep] Successfully downloaded and installed plugin " . $name . " .";
+                            //}
                         }
                         break;
                     case "uninstall":
@@ -262,8 +262,10 @@ class Sheep implements Plugin {
                                 $output = "[Sheep] Plugin name cannot be blank!";
                                 break;
                             default:
-                                unlink(DATA_PATH . DIRECTORY_SEPERATOR . "plugins" . DIRECTORY_SEPERATOR . $params[1]);
-                                $output = "[Sheep] Successfully removed plugin named" . $params[1];
+                                unlink(DATA_PATH  . "/plugins/" . $params[1]);
+                                $this->api->plugin->loadAll();
+                                $this->api->plugin->initAll();
+                                $output = "[Sheep] Successfully removed plugin named " . $params[1];
                         }
                         break;
                 }
@@ -275,17 +277,20 @@ class Sheep implements Plugin {
         $apil = $this->config->get("api-url");
         $json = json_decode(file_get_contents($apil), true);
         foreach($json["resources"] as $index => $res){
-            console("[Sheep] Debug: Searching array key {$index}...");
+            //console("[Sheep] Debug: Searching array key {$index}...");
             if($res["title"] == $name){
                 if($res["state"] !== "visible"){
                     console("[Sheep] Plugin is awaiting review. Sheep will not download these types of plugins.");
                     return false;
                 } else {
+                    /*
                     $dlink = $this->config->get("dlurl");
                     $dlink[2] = $res["title"];
                     $dlink[4] = $res["id"];
                     $dlink[6] = $res["version_id"];
                     $dlink = implode($dlink);
+                    */
+                    $dlink = "http://forums.pocketmine.net/index.php?plugins/" . $res["title"] . "." . $res["id"] . "/download&version=" . $res["version_id"];
                     console("[Sheep] Debug: {$dlink}");
                     return array(
                         "author" => $res["author_username"],
@@ -298,18 +303,19 @@ class Sheep implements Plugin {
     }
 
     public function putPlugin($code, $name){
-        if(strtolower(substr($code, -3)) === "pmf"){
-            file_put_contents(DATA_PATH . DIRECTORY_SEPERATOR . "plugins" . DIRECTORY_SEPERATOR . $name . ".pmf", $code);
+        //console("[Sheep] Debug:" . $code);
+        if(strtolower(substr($code, 0, 5)) === "<?php"){
+            file_put_contents(DATA_PATH . "/plugins/" . $name . ".php", $code);
         } else {
-            file_put_contents(DATA_PATH . DIRECTORY_SEPERATOR . "plugins" . DIRECTORY_SEPERATOR . $name . ".php", $code);
+            file_put_contents(DATA_PATH . "/plugins/" . $name . ".pmf", $code);
         }
     }
 
     public function getPluginType($code){
-        if(strtolower(substr($code, -3)) === "pmf"){
-            return "pmf";
-        } else {
+        if(strtolower(substr($code, 0, 5)) === "<?php"){
             return "php";
+        } else {
+            return "pmf";
         }
     }
 
