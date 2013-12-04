@@ -267,7 +267,13 @@ class Sheep implements Plugin {
     public function derpUrl($name){
         $api = $this->config->get("api-url");
         $parsedjson = json_decode(file_get_contents($api));
-        
+        foreach($parsedjson as $hmm => $idk){ //TODO: what was I thinking here again?
+            foreach($idk["title"] as $meh){
+                if($meh = $name){
+                    return $idk[""]
+                }
+            }
+        }
     }
     
     public function __destruct(){
