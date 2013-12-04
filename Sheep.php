@@ -23,13 +23,16 @@ class Sheep implements Plugin {
     private $confirm;
     private $nOfPlugins;
 	private $questionableFunctionsList;
+    private $w;
     
     public function __construct(ServerAPI $api, $server = false){
         $this->api = $api;
         $this->server = ServerAPI::request();
         
-        $this->config = new Config($this->api->plugin->configPath($this) . "config.yml", CONFIG_YAML, array(
+        $this->config = new Config($this->api->plugin->configPath($this) . "sheep.yml", CONFIG_YAML, array(
         "api-url" => "http://forums.pocketmine.net/api.php",
+        "dl-url" => "http://forums.pocketmine.net/index.php?plugins/{$this->w["title"]}.{$this->w["description_id"]}/download&version={$this->w["version_id"]}",
+        "player-install" => false,
         "auto-update" => true,
         "spapi-url" => null,
         "spapi-enabled" => false,
@@ -211,8 +214,10 @@ class Sheep implements Plugin {
     public function cmdHandle($cmd, $params, $issuer){
 	    if($issuer instanceof Player)
 	    {
-		    return "[Sheep] You are not allowed to use this command. Consider asking your administrator to enable user-install in sheep.yml.";
-	    }
+            if(!$this->config->get("player-install")){
+		    return "[Sheep] You are not allowed to use this command. Consider asking your administrator to enable player-install in sheep.yml.";
+            }
+        }
 
         $output = "";
         switch($cmd){
@@ -223,27 +228,32 @@ class Sheep implements Plugin {
                         if(!isset($params[1]) or $params[1] == ""){
                             return "[Sheep] No plugin specified to install.";
                         }
-                        $url = $this->config->get("api-url");
-                        $fetch = json_decode(file_get_contents($url.$params[1]), true);
-                        if(isset($fetch["error"])){
-                            $output = "[Sheep] An unexpected error occured. Check that the plugin name is correct.";
-                        } elseif(isset($fetch['downloadInfo']["link"])){
-	                        console("[Sheep] Downloading...\n");
-	                        $plugin = file_get_contents($fetch['downloadInfo']["link"]);
-	                        console("[Sheep] Checking for Malware...\n");
+                        if(!$this->derpUrl($params[1])){
+                            console("[Sheep] Error: Unknown error.");
+                        } else {
+                            $state = $this->derpUrl($params[1])["state"];
+                            $name = $this->derpUrl($params[1])["name"];
+                            $author = $this->derpUrl($params[1])["author"];
+                            $dl = $this->derpUrl($params[1])["dl"];
+                            if($state !== "visible"){
+                                return false;
+                            }
+	                        console("[Sheep] Downloading plugin {$name} by {$author}...\n");
+	                        $plugin = file_get_contents($dl);
+	                        console("[Sheep] Checking for malware...\n");
 	                        foreach($this->questionableFunctionsList as $q)
 	                        {
 		                        if (strpos($plugin, $q) !== false) {
 			                        return "[Sheep] Plugin contains file system function(s). This plugin can be planning to do something nasty! To install, do /sheep confirm.";
-			                        $this->confirm = $fetch['downloadInfo']['link'];
+			                        $this->confirm = $dl;
 		                        } else {
-		                            file_put_contents(DATA_PATH."/plugins/".$fetch["title"].$fetch['filetype'], $plugin);
+		                            file_put_contents(DATA_PATH."/plugins/".$name.".php", $plugin);
 		                        }
 	                        }
-                            if(!$this->api->plugin->load($fetch["title"].$fetch['filetype'])){
+                            if(!$this->api->plugin->load($name.".php")){
                                 $output = "[Sheep] An internal error has occured.";
                             } else {
-                            $output = "[Sheep] Successfully downloaded and installed plugin " . $fetch["title"] . " .";
+                            $output = "[Sheep] Successfully downloaded and installed plugin " . $name . " .";
                             }
                         }
 	                    console("[Sheep] Installed plugin.\n");
@@ -268,9 +278,17 @@ class Sheep implements Plugin {
         $api = $this->config->get("api-url");
         $parsedjson = json_decode(file_get_contents($api));
         foreach($parsedjson as $hmm => $idk){ //TODO: what was I thinking here again?
+            $this->w = $idk;
             foreach($idk["title"] as $meh){
                 if($meh = $name){
-                    return $idk[""]
+                    return array(
+                        "name" => $this->w["title"],
+                        "state" => $this->w["state"],
+                        "author" => $this->w["author"],
+                        "dl" => $this->config->get("dl-url"),
+                    );
+                } else {
+                    return false;
                 }
             }
         }
@@ -278,7 +296,7 @@ class Sheep implements Plugin {
     
     public function __destruct(){
         $this->config->save();
-        console('[Sheep] Sheep exiting! Bye!');
+        console('[Sheep] Sheep exiting.');
     }
 }
 ?>
