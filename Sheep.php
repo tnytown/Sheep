@@ -265,7 +265,8 @@ class Sheep implements Plugin {
                                 $output = "[Sheep] Plugin name cannot be blank!";
                                 break;
                             default:
-                                unlink(DATA_PATH  . "/plugins/" . $params[1]);
+                                unlink(DATA_PATH."/plugins/".$params[1].".php");
+                                unlink(DATA_PATH."/plugins/".$params[1].".pmf");
                                 $this->api->plugin->loadAll();
                                 $this->api->plugin->initAll();
                                 $output = "[Sheep] Successfully removed plugin named " . $params[1];
