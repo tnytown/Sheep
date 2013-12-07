@@ -13,6 +13,7 @@ class=Sheep
 Full list of contributors:
 KnownUnown (project creator)
 sekjun9878
+ZacHack (gh#3)
 */
 
 class Sheep implements Plugin {
@@ -20,7 +21,7 @@ class Sheep implements Plugin {
     private $api;
     private $server;
     private $config;
-    private $confirm;
+    //private $confirm;
     private $nOfPlugins;
     private $questionableFunctionsList;
     //private $w;
@@ -224,7 +225,7 @@ class Sheep implements Plugin {
         switch($cmd){
             case "sheep":
                 if($params[0] == ""){
-                    $output = "Usage: /sheep install <Plugin Name>";
+                    $output = "Usage: /sheep <install|remove|uninstall|load> <plugin name> (for load: plugin name, filetype, and author)";
                 }
                 switch($params[0]){
                     case "install":
@@ -241,6 +242,7 @@ class Sheep implements Plugin {
                             $link = $array["link"];
                             console("[Sheep] Downloading plugin {$name} by {$author}...");
                             $plugin = file_get_contents($link);
+                            $type = $this->getPluginType($plugin);
                             console("[Sheep] Checking for malware...\n");
                             foreach($this->questionableFunctionsList as $q)
                             {
@@ -249,10 +251,11 @@ class Sheep implements Plugin {
                                 }
                             }
                             $this->putPlugin($plugin, $name);
+                            $this->loadPlugin($name, $type, $author);
                             //if(!$this->api->plugin->load($name . "." . $this->getPluginType($plugin))){
-                            console("[Sheep] Reloading plugins...");
-                            $this->api->plugin->loadAll();
-                            $this->api->plugin->initAll();
+                            //console("[Sheep] Starting plugin...");
+                            //$this->api->plugin->loadAll();
+                            //$this->api->plugin->initAll();
                             //} else {
                             $output = "[Sheep] Successfully downloaded and installed plugin " . $name . " .";
                             //}
@@ -266,11 +269,18 @@ class Sheep implements Plugin {
                                 break;
                             default:
                                 unlink(DATA_PATH  . "/plugins/" . $params[1]);
-                                $this->api->plugin->loadAll();
-                                $this->api->plugin->initAll();
+                                //$this->api->plugin->loadAll();
+                                //$this->api->plugin->initAll();
                                 $output = "[Sheep] Successfully removed plugin named " . $params[1];
                         }
                         break;
+                    case "load":
+                        if(!$this->loadPlugin($params[1], $params[2], $params[3])){
+                            console("[Sheep] Error: Plugin is invalid or information is incorrect.");
+                        } else {
+                            console("[Sheep] Loaded plugin {$params[1]}.");
+                        }
+
                 }
         }
         return $output;
@@ -319,6 +329,26 @@ class Sheep implements Plugin {
             return "php";
         } else {
             return "pmf";
+        }
+    }
+
+    public function loadPlugin($name, $type, $author){
+        $this->api->plugin->load(DATA_PATH . "/plugins/" . $name . "." . $type);
+        if(method_exists($this->api->plugin, "getIdentifier")){
+            $id = $this->getIdentifier($name, $author);
+            $all = $this->getAll();
+            $obj = $all[$id][0];
+            $obj->init();
+        } else {
+            console("[Sheep] Warning: A lower API version than 11 was detected. Sheep currently half-supports API >11, but keep\n in mind support would be removed in the near future.");
+            include_once DATA_PATH . "/plugins/" . $name . "." . $type;
+            $nbj = new $name($this->api, false);
+            if(!$nbj){
+                return false;
+            }
+            $nbj->init();
+            unset($nbj);
+            $nbj = null;
         }
     }
 
