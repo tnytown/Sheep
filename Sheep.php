@@ -268,10 +268,14 @@ class Sheep implements Plugin {
                                 $output = "[Sheep] Plugin name cannot be blank!";
                                 break;
                             default:
-                                unlink(DATA_PATH  . "/plugins/" . $params[1]);
+                                if(unlink(DATA_PATH  . "/plugins/" . $params[1] . ".php") & unlink(DATA_PATH . "/plugins/" . $params[1] . ".pmf")){
+                                    return "[Sheep] Error: plugin not found.";
+                                } else {
                                 //$this->api->plugin->loadAll();
                                 //$this->api->plugin->initAll();
                                 $output = "[Sheep] Successfully removed plugin named " . $params[1];
+
+                                }
                         }
                         break;
                     case "load":
@@ -335,10 +339,10 @@ class Sheep implements Plugin {
     public function loadPlugin($name, $type, $author){
         $this->api->plugin->load(DATA_PATH . "/plugins/" . $name . "." . $type);
         if(method_exists($this->api->plugin, "getIdentifier")){
-            $id = $this->getIdentifier($name, $author);
-            $all = $this->getAll();
+            $id = $this->api->plugin->getIdentifier($name, $author);
+            $all = $this->api->plugin->getAll();
             $obj = $all[$id][0];
-            $obj->init();
+            $obj::init();
         } else {
             console("[Sheep] Warning: A lower API version than 11 was detected. Sheep currently half-supports API >11, but keep\n in mind support would be removed in the near future.");
             include_once DATA_PATH . "/plugins/" . $name . "." . $type;
