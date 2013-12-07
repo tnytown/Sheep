@@ -25,12 +25,30 @@ class Sheep implements Plugin {
     private $nOfPlugins;
     private $questionableFunctionsList;
     //private $w;
+    private $cfgPath = "/plugins/Sheep";
 
     public function __construct(ServerAPI $api, $server = false){
         $this->api = $api;
+        /*
+        $g = $this->api->plugin->get($this->api->plugin->getIdentifier("Sheep", "KnownUnown"));
+        safe_var_dump($g);
+        $class = $g[0];
+        if(!$this->api->plugin->configPath($class)){
+            console("[Sheep] Error: Unable to create config.");
+            $this->api->console->run("stop");
+        } else {
+            $this->cfgPath = $this->api->plugin->configPath($this);
+        }
+        */
+        if(!file_exists(DATA_PATH . $this->cfgPath)){
+            if(!mkdir(DATA_PATH . $this->cfgPath)){
+                console("[Sheep] Error: Unable to create config path.");
+                $this->api->console->run("stop");
+            }
+        }
         $this->server = ServerAPI::request();
-        $this->pinfo = new Config($this->api->plugin->configPath($this) . "sheep.json", CONFIG_JSON, array());
-        $this->config = new Config($this->api->plugin->configPath($this) . "sheep.yml", CONFIG_YAML, array(
+        $this->pconfig = new Config($this->cfgPath . "sheep.json", CONFIG_JSON, array());
+        $this->config = new Config($this->cfgPath . "sheep.yml", CONFIG_YAML, array(
                 "api-url" => "http://forums.pocketmine.net/api.php",
                 "dl-url" => array("http://forums.pocketmine.net/index.php?plugins/", "", ".", "", "/download&version=", ""),
                 "player-install" => false,
@@ -341,9 +359,8 @@ class Sheep implements Plugin {
         $this->api->plugin->load(DATA_PATH . "/plugins/" . $name . "." . $type);
         if(method_exists($this->api->plugin, "getIdentifier")){
             $id = $this->api->plugin->getIdentifier($name, $author);
-            $all = $this->api->plugin->getAll();
-            $obj = $all[$id][0];
-            $obj::init();
+            $p = $this->api->plugin->get($id);
+            $p[0]->init();
         } else {
             console("[Sheep] Warning: A lower API version than 11 was detected. Sheep currently half-supports API >11, but keep\n in mind support would be removed in the near future.");
             include_once DATA_PATH . "/plugins/" . $name . "." . $type;
@@ -355,6 +372,9 @@ class Sheep implements Plugin {
             unset($nbj);
             $nbj = null;
         }
+    }
+    public function autoUpdate(){
+
     }
 
     public function __destruct(){
