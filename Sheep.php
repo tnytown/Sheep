@@ -38,6 +38,7 @@ class Sheep implements Plugin {
                 "spapi-url" => null,
                 "spapi-enabled" => false,
                 "bad-functions" => array(
+                    "create_function",
                     "passthru",
                     "exec",
                     "pnctl_exec",
