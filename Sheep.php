@@ -25,7 +25,7 @@ class Sheep implements Plugin {
     private $nOfPlugins;
     private $questionableFunctionsList;
     //private $w;
-    private $cfgPath = "/plugins/Sheep";
+    //private $cfgPath = "/plugins/Sheep";
 
     public function __construct(ServerAPI $api, $server = false){
         $this->api = $api;
@@ -265,14 +265,16 @@ class Sheep implements Plugin {
                 }
                 switch($params[0]){
                     case "install":
+                        $shifted = array_shift($params);
+                        $name = join(" " , $shifted);
                         console("[Sheep] Installing...\n");
                         if(!isset($params[1]) or $params[1] == ""){
                             return "[Sheep] No plugin specified to install.";
                         }
-                        if(!$this->getUrl($params[1])){
+                        if(!$this->getUrl($name)){
                             console("[Sheep] Error: Unknown error.");
                         } else {
-                            $array = $this->getUrl($params[1]);
+                            $array = $this->getUrl($name);
                             $name = $array["title"];
                             $author = $array["author"];
                             $link = $array["link"];
@@ -304,12 +306,12 @@ class Sheep implements Plugin {
                                 $output = "[Sheep] Plugin name cannot be blank!";
                                 break;
                             default:
-                                if(unlink(DATA_PATH  . "/plugins/" . $params[1] . ".php") & unlink(DATA_PATH . "/plugins/" . $params[1] . ".pmf")){
+                                if(!unlink(DATA_PATH  . "/plugins/" . $params[0] . ".php") && !unlink(DATA_PATH . "/plugins/" . $params[0] . ".pmf")){
                                     return "[Sheep] Error: plugin not found.";
                                 } else {
-                                //$this->api->plugin->loadAll();
-                                //$this->api->plugin->initAll();
-                                $output = "[Sheep] Successfully removed plugin named " . $params[1];
+                                    //$this->api->plugin->loadAll();
+                                    //$this->api->plugin->initAll();
+                                    $output = "[Sheep] Successfully removed plugin named " . $params[1];
 
                                 }
                         }
