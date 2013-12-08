@@ -53,6 +53,7 @@ class Sheep implements Plugin {
         $this->pconfig = new Config($this->api->plugin->configPath($this) . "sheep.json", CONFIG_JSON, array());
         $this->config = new Config($this->api->plugin->configPath($this) . "sheep.yml", CONFIG_YAML, array(
                 "api-url" => "http://forums.pocketmine.net/api.php",
+                "debug" => false,
                 "dl-url" => array("http://forums.pocketmine.net/index.php?plugins/", "", ".", "", "/download&version=", ""),
                 "player-install" => false,
                 "auto-update" => true,
@@ -261,7 +262,7 @@ class Sheep implements Plugin {
         switch($cmd){
             case "sheep":
                 if($params[0] == ""){
-                    $output = "Usage: /sheep <install|remove|uninstall|load> <plugin name> (for load: plugin name, filetype, and author)";
+                    $output = "Usage: /sheep <install|remove|uninstall|load> <plugin name> (for load: plugin name and filetype)";
                 }
                 switch($params[0]){
                     case "install":
@@ -326,7 +327,7 @@ class Sheep implements Plugin {
                         }
                         break;
                     case "load":
-                        if(!$this->loadPlugin($params[1], $params[2], $params[3])){
+                        if(!$this->loadPlugin($params[1], $params[2])){
                             console("[Sheep] Error: Plugin is invalid or information is incorrect.");
                         } else {
                             console("[Sheep] Loaded plugin {$params[1]}.");
@@ -341,7 +342,7 @@ class Sheep implements Plugin {
         $apil = $this->config->get("api-url");
         $json = json_decode(file_get_contents($apil), true);
         foreach($json["resources"] as $index => $res){
-            //console("[Sheep] Debug: Searching array key {$index}...");
+            $this->dbgMsg("Searching array key {$index}...");
             if($res["title"] == $name){
                 if($res["state"] !== "visible"){
                     console("[Sheep] Plugin is awaiting review. Sheep will not download these types of plugins.");
@@ -355,7 +356,7 @@ class Sheep implements Plugin {
                     $dlink = implode($dlink);
                     */
                     $dlink = "http://forums.pocketmine.net/index.php?plugins/" . $res["title"] . "." . $res["id"] . "/download&version=" . $res["version_id"];
-                    console("[Sheep] Debug: {$dlink}");
+                    $this->dbgMsg($dlink);
                     return array(
                         "author" => $res["author_username"],
                         "title" => $res["title"],
@@ -368,7 +369,6 @@ class Sheep implements Plugin {
     }
 
     public function putPlugin($code, $name){
-        //console("[Sheep] Debug:" . $code);
         if(strtolower(substr($code, 0, 5)) === "<?php"){
             file_put_contents(DATA_PATH . "/plugins/" . $name . ".php", $code);
         } else {
@@ -440,6 +440,11 @@ class Sheep implements Plugin {
     }
     public function autoUpdate(){
 
+    }
+    public function dbgMsg($message){
+        if($this->config->get("debug")){
+            console("[Sheep] Debug: {$message}");
+        }
     }
 
     public function __destruct(){
