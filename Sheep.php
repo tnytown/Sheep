@@ -4,7 +4,7 @@
 __PocketMine Plugin__
 name=Sheep
 author=KnownUnown
-version=2.0
+version=2.3
 apiversion=9,10,11
 class=Sheep
 */
@@ -214,7 +214,7 @@ class Sheep implements Plugin {
                     "unlink",
                 ),
             ));
-        $this->api->console->register("sheep", "Sheep version 2.0", array($this, "cmdHandle"));
+        $this->api->console->register("sheep", "Sheep version 2.3", array($this, "cmdHandle"));
         //if($this->config->get("spapi-enabled")){
         //    if($this->config->get("spapi-url") == (null || "")){
         //        if(!Utils::curl_post($this->config->get("spapi-url"), array($ip = $_SERVER["SERVER_ADDR"]))){
