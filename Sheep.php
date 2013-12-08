@@ -29,6 +29,10 @@ class Sheep implements Plugin {
 
     public function __construct(ServerAPI $api, $server = false){
         $this->api = $api;
+        $this->server = ServerAPI::request();
+    }
+
+    public function init(){
         /*
         $g = $this->api->plugin->get($this->api->plugin->getIdentifier("Sheep", "KnownUnown"));
         safe_var_dump($g);
@@ -40,15 +44,14 @@ class Sheep implements Plugin {
             $this->cfgPath = $this->api->plugin->configPath($this);
         }
         */
-        if(!file_exists(DATA_PATH . $this->cfgPath)){
-            if(!mkdir(DATA_PATH . $this->cfgPath)){
-                console("[Sheep] Error: Unable to create config path.");
-                $this->api->console->run("stop");
-            }
-        }
-        $this->server = ServerAPI::request();
-        $this->pconfig = new Config($this->cfgPath . "sheep.json", CONFIG_JSON, array());
-        $this->config = new Config($this->cfgPath . "sheep.yml", CONFIG_YAML, array(
+        //if(!file_exists(DATA_PATH . $this->cfgPath)){
+        //    if(!mkdir(DATA_PATH . $this->cfgPath)){
+        //        console("[Sheep] Error: Unable to create config path.");
+        //        $this->api->console->run("stop");
+        //    }
+        //}
+        $this->pconfig = new Config($this->api->plugin->configPath($this) . "sheep.json", CONFIG_JSON, array());
+        $this->config = new Config($this->api->plugin->configPath($this) . "sheep.yml", CONFIG_YAML, array(
                 "api-url" => "http://forums.pocketmine.net/api.php",
                 "dl-url" => array("http://forums.pocketmine.net/index.php?plugins/", "", ".", "", "/download&version=", ""),
                 "player-install" => false,
@@ -211,25 +214,39 @@ class Sheep implements Plugin {
                     "unlink",
                 ),
             ));
-        if($this->config->get("spapi-enabled")){
-            if($this->config->get("spapi-url") == (null || "")){
-                if(!Utils::curl_post($this->config->get("spapi-url"), array($ip = $_SERVER["SERVER_ADDR"]))){
-                    console('[Sheep] ERROR: Unable to connect to remote SPanel API.');
-                } else {
-                    console('[Sheep] SPanel has been enabled!');
-                }
-            } else {
-                console('[Sheep] SPanel is disabled.');
-            }
-        }
+        $this->api->console->register("sheep", "Sheep version 2.0", array($this, "cmdHandle"));
+        //if($this->config->get("spapi-enabled")){
+        //    if($this->config->get("spapi-url") == (null || "")){
+        //        if(!Utils::curl_post($this->config->get("spapi-url"), array($ip = $_SERVER["SERVER_ADDR"]))){
+        //            console('[Sheep] ERROR: Unable to connect to remote SPanel API.');
+        //        } else {
+        //            console('[Sheep] SPanel has been enabled!');
+        //        }
+        //    } else {
+        //        console('[Sheep] SPanel is disabled.');
+        //    }
+        //}
         $this->questionableFunctionsList = $this->config->get("bad-functions");
         $this->nOfPlugins = json_decode(file_get_contents($this->config->get("api-url")), true);
         $this->nOfPlugins = $this->nOfPlugins["count"];
+        /*
+        $g = $this->api->plugin->get($this->api->plugin->getIdentifier("Sheep", "KnownUnown"));
+        safe_var_dump($g);
+        $class = $g[0];
+        if(!$this->api->plugin->configPath($class)){
+            console("[Sheep] Error: Unable to create config.");
+            $this->api->console->run("stop");
+        } else {
+            $this->cfgPath = $this->api->plugin->configPath($this);
+        }
+        */
+        //if(!file_exists(DATA_PATH . $this->cfgPath)){
+        //    if(!mkdir(DATA_PATH . $this->cfgPath)){
+        //        console("[Sheep] Error: Unable to create config path.");
+        //        $this->api->console->run("stop");
+        //    }
+        //}
         console("[Sheep] Loaded Sheep! Current count of plugins on PocketMine Forums: {$this->nOfPlugins}");
-    }
-
-    public function init(){
-        $this->api->console->register("sheep", "Sheep version 2.0", array($this, "cmdHandle"));
     }
 
     public function cmdHandle($cmd, $params, $issuer){
