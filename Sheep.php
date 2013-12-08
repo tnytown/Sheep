@@ -5,7 +5,7 @@ __PocketMine Plugin__
 name=Sheep
 author=KnownUnown
 version=2.3
-apiversion=9,10,11
+apiversion=11
 class=Sheep
 */
 
@@ -265,19 +265,22 @@ class Sheep implements Plugin {
                 }
                 switch($params[0]){
                     case "install":
-                        $shifted = array_shift($params);
-                        $name = join(" " , $shifted);
+                        $derp = $params;
+                        array_shift($derp);
+                        $pn = implode(" ", $derp);
+                        console($pn);
                         console("[Sheep] Installing...\n");
-                        if(!isset($params[1]) or $params[1] == ""){
+                        if(!isset($pn) or $pn == ""){
                             return "[Sheep] No plugin specified to install.";
                         }
-                        if(!$this->getUrl($name)){
+                        if(!$this->getUrl($pn)){
                             console("[Sheep] Error: Unknown error.");
                         } else {
-                            $array = $this->getUrl($name);
+                            $array = $this->getUrl($pn);
                             $name = $array["title"];
                             $author = $array["author"];
                             $link = $array["link"];
+                            $updatet = $array["updatet"];
                             console("[Sheep] Downloading plugin {$name} by {$author}...");
                             $plugin = file_get_contents($link);
                             $type = $this->getPluginType($plugin);
@@ -289,7 +292,13 @@ class Sheep implements Plugin {
                                 }
                             }
                             $this->putPlugin($plugin, $name);
-                            $this->loadPlugin($name, $type, $author);
+                            $this->loadPlugin($name, $type);
+                            $this->pconfig->set($name, array(
+                                    "name" => $name,
+                                    "updatet" => $updatet,
+                                    "author" => $author,
+                                )
+                            );
                             //if(!$this->api->plugin->load($name . "." . $this->getPluginType($plugin))){
                             //console("[Sheep] Starting plugin...");
                             //$this->api->plugin->loadAll();
@@ -351,6 +360,7 @@ class Sheep implements Plugin {
                         "author" => $res["author_username"],
                         "title" => $res["title"],
                         "link" => $dlink,
+                        "times-updated" => $res["updatet"],
                     );
                 }
             }
@@ -374,13 +384,48 @@ class Sheep implements Plugin {
         }
     }
 
-    public function loadPlugin($name, $type, $author){
+    public function loadPlugin($name, $type){
         $this->api->plugin->load(DATA_PATH . "/plugins/" . $name . "." . $type);
-        if(method_exists($this->api->plugin, "getIdentifier")){
-            $id = $this->api->plugin->getIdentifier($name, $author);
-            $p = $this->api->plugin->get($id);
-            $p[0]->init();
-        } else {
+        if($type == "pmf"){
+            $pmf = new PMFPlugin(DATA_PATH . "/plugins/" . $name . "." . $type);
+            $info = $pmf->getPluginInfo();
+        } elseif($type == "php"){
+            $content = file_get_contents(DATA_PATH . "/plugins/" . $name . "." . $type);
+            $info = strstr($content, "*/", true);
+            $content = str_repeat(PHP_EOL, substr_count($info, "\n")).substr(strstr($content, "*/"),2);
+            if(preg_match_all('#([a-zA-Z0-9\-_]*)=([^\r\n]*)#u', $info, $matches) == 0){ //false or 0 matches
+                console("[ERROR] Failed parsing of ".basename(DATA_PATH . "/plugins/" . $name . "." . $type));
+                return false;
+            }
+            $info = array();
+            foreach($matches[1] as $k => $i){
+                $v = $matches[2][$k];
+                switch(strtolower($v)){
+                    case "on":
+                    case "true":
+                    case "yes":
+                        $v = true;
+                        break;
+                    case "off":
+                    case "false":
+                    case "no":
+                        $v = false;
+                        break;
+                }
+                $info[$i] = $v;
+            }
+            $info["code"] = $content;
+            $info["class"] = trim(strtolower($info["class"]));
+        }
+        //if(method_exists($this->api->plugin, "getIdentifier")){
+        //safe_var_dump($info["class"]);
+        //safe_var_dump($info["author"]);
+        //safe_var_dump($info["apiversion"]);
+        $id = $this->api->plugin->getIdentifier($info["name"], $info["author"]);
+        $p = $this->api->plugin->get($id);
+        safe_var_dump($p);
+        $p[0]->init();
+        /*} else {
             console("[Sheep] Warning: A lower API version than 11 was detected. Sheep currently half-supports API >11, but keep\n in mind support would be removed in the near future.");
             include_once DATA_PATH . "/plugins/" . $name . "." . $type;
             $nbj = new $name($this->api, false);
@@ -391,6 +436,7 @@ class Sheep implements Plugin {
             unset($nbj);
             $nbj = null;
         }
+        */
     }
     public function autoUpdate(){
 
