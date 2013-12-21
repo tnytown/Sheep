@@ -54,9 +54,9 @@ class Sheep implements Plugin {
         $this->config = new Config($this->api->plugin->configPath($this) . "sheep.yml", CONFIG_YAML, array(
                 "api-url" => "http://forums.pocketmine.net/api.php",
                 "debug" => false,
-                "dl-url" => array("http://forums.pocketmine.net/index.php?plugins/", "", ".", "", "/download&version=", ""),
                 "player-install" => false,
                 "auto-update" => true,
+                "update-interval" => "432000",
                 "spapi-url" => null,
                 "spapi-enabled" => false,
                 "bad-functions" => array(
@@ -215,7 +215,7 @@ class Sheep implements Plugin {
                     "unlink",
                 ),
             ));
-        $this->api->console->register("sheep", "Sheep version 2.3", array($this, "cmdHandle"));
+        $this->api->console->register("sheep", "Sheep version 2.3b", array($this, "cmdHandle"));
         //if($this->config->get("spapi-enabled")){
         //    if($this->config->get("spapi-url") == (null || "")){
         //        if(!Utils::curl_post($this->config->get("spapi-url"), array($ip = $_SERVER["SERVER_ADDR"]))){
@@ -247,6 +247,11 @@ class Sheep implements Plugin {
         //        $this->api->console->run("stop");
         //    }
         //}
+        if(!$this->config->get("auto-update")){
+            console("[Sheep] Warning: autoupdate is not enabled!");
+        } else {
+            $this->api->schedule($this->config->get("update-interval"), array($this, "autoUpdate"), array(), true);
+        }
         console("[Sheep] Loaded Sheep! Current count of plugins on PocketMine Forums: {$this->nOfPlugins}");
     }
 
@@ -300,6 +305,7 @@ class Sheep implements Plugin {
                                     "author" => $author,
                                 )
                             );
+                            $this->pconfig->save();
                             //if(!$this->api->plugin->load($name . "." . $this->getPluginType($plugin))){
                             //console("[Sheep] Starting plugin...");
                             //$this->api->plugin->loadAll();
@@ -332,6 +338,13 @@ class Sheep implements Plugin {
                         } else {
                             console("[Sheep] Loaded plugin {$params[1]}.");
                         }
+                        break;
+                    case "updateall":
+                        //if($params[1] == "null" || ""){
+                        ///    console("[Sheep] Error: omaigod invalid plugin name halp");
+                        //} else 
+                        $this->autoUpdate();
+                        break;
 
                 }
         }
@@ -423,7 +436,7 @@ class Sheep implements Plugin {
         //safe_var_dump($info["apiversion"]);
         $id = $this->api->plugin->getIdentifier($info["name"], $info["author"]);
         $p = $this->api->plugin->get($id);
-        safe_var_dump($p);
+        $this->dbgMsg(safe_var_dump($p));
         $p[0]->init();
         /*} else {
             console("[Sheep] Warning: A lower API version than 11 was detected. Sheep currently half-supports API >11, but keep\n in mind support would be removed in the near future.");
@@ -439,7 +452,28 @@ class Sheep implements Plugin {
         */
     }
     public function autoUpdate(){
-
+        console("[Sheep] Updating plugins...");
+        $u = null;
+        foreach(json_decode($this->api->plugin->configPath($this) . "sheep.json") as $a){
+            $info = $this->getUrl($a["name"]);
+            if($info["updatet"] !== $a["updatet"]){
+                $this->pconfig->set($a["name"], array(
+                    "name" => $info["name"],
+                    "updatet" => $info["updatet"],
+                    "author" => $info["author"],
+                    ));
+                $this->dbgMsg("Found an update and updating plugin {$a['name']}...");
+                $plugin = file_get_contents($info["link"]);
+                unlink($a["name"] . "." . $this->getPluginType($plugin));
+                $this->putPlugin($plugin, $info["name"]);
+                $this->loadPlugin($info["name"], $this->getPluginType($plugin));
+                $u++;
+            } else {
+                console("[Sheep] No updates found for your plugins.");
+                return;
+            }
+            console("[Sheep] Updated {$u} plugins.");
+        }
     }
     public function dbgMsg($message){
         if($this->config->get("debug")){
