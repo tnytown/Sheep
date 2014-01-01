@@ -275,18 +275,20 @@ class Sheep implements Plugin {
                         array_shift($derp);
                         $pn = implode(" ", $derp);
                         console($pn);
-                        console("[Sheep] Installing...\n");
+                        console("[Sheep] Installing...");
                         if(!isset($pn) or $pn == ""){
                             return "[Sheep] No plugin specified to install.";
                         }
                         if(!$this->getUrl($pn)){
-                            console("[Sheep] Error: Unknown error.");
+                            console("[Sheep] Error: Plugin not found.");
                         } else {
                             $array = $this->getUrl($pn);
                             $name = $array["title"];
                             $author = $array["author"];
                             $link = $array["link"];
-                            $updatet = $array["updatet"];
+                            $updatet = $array["times-updated"];
+                            $this->dbgMsg($array["times-updated"]);
+                            $this->dbgMsg($updatet);
                             console("[Sheep] Downloading plugin {$name} by {$author}...");
                             $plugin = file_get_contents($link);
                             $type = $this->getPluginType($plugin);
@@ -340,6 +342,7 @@ class Sheep implements Plugin {
                         }
                         break;
                     case "updateall":
+                        //TODO: add individual plugin updating
                         //if($params[1] == "null" || ""){
                         ///    console("[Sheep] Error: omaigod invalid plugin name halp");
                         //} else 
@@ -454,7 +457,8 @@ class Sheep implements Plugin {
     public function autoUpdate(){
         console("[Sheep] Updating plugins...");
         $u = null;
-        foreach(json_decode($this->api->plugin->configPath($this) . "sheep.json") as $a){
+        foreach(json_decode($this->api->plugin->configPath($this) . "sheep.json", true) as $a){
+            $this->dbgMsg($a);
             $info = $this->getUrl($a["name"]);
             if($info["updatet"] !== $a["updatet"]){
                 $this->pconfig->set($a["name"], array(
@@ -462,6 +466,7 @@ class Sheep implements Plugin {
                     "updatet" => $info["updatet"],
                     "author" => $info["author"],
                     ));
+                $this->pconfig->save();
                 $this->dbgMsg("Found an update and updating plugin {$a['name']}...");
                 $plugin = file_get_contents($info["link"]);
                 unlink($a["name"] . "." . $this->getPluginType($plugin));
@@ -483,6 +488,7 @@ class Sheep implements Plugin {
 
     public function __destruct(){
         $this->config->save();
+        $this->pconfig->save();
         console('[Sheep] Sheep exiting.');
     }
 }
