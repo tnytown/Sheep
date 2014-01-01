@@ -377,7 +377,7 @@ class Sheep implements Plugin {
                         "author" => $res["author_username"],
                         "title" => $res["title"],
                         "link" => $dlink,
-                        "times-updated" => $res["updatet"],
+                        "times-updated" => $res["times_updated"],
                     );
                 }
             }
