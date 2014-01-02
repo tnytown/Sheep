@@ -536,7 +536,8 @@ class Sheep implements Plugin {
             }
             console("[Sheep] Updated {$u} plugins. Stopping server in 5 minutes to apply changes.");
             $this->api->chat->broadcast("[Sheep] Stopping server in 5 minutes.");
-            $this->api->schedule(20 * 60 * (5 * 60), array($this, "restartServer"), array(), true);
+            $this->api->schedule(20 * 60 * 5, array($this, "restartServer"), array(), true);
+            // 20 ticks = 1 second, 20 ticks * 60 seconds = 1 minute, 1 minute * 5 minutes = 5 minutes, You made it 50 hours
         }
     }
 
