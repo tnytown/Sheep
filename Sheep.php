@@ -4,7 +4,7 @@
 __PocketMine Plugin__
 name=Sheep
 author=KnownUnown
-version=2.3
+version=3.0
 apiversion=11
 class=Sheep
 */
@@ -50,7 +50,9 @@ class Sheep implements Plugin {
         //        $this->api->console->run("stop");
         //    }
         //}
-        $this->pconfig = new Config($this->api->plugin->configPath($this) . "sheep.json", CONFIG_JSON, array());
+        $this->pconfig = new Config($this->api->plugin->configPath($this) . "sheep.json", CONFIG_JSON, array(
+
+            ));
         $this->config = new Config($this->api->plugin->configPath($this) . "sheep.yml", CONFIG_YAML, array(
                 "api-url" => "http://forums.pocketmine.net/api.php",
                 "debug" => false,
@@ -215,7 +217,50 @@ class Sheep implements Plugin {
                     "unlink",
                 ),
             ));
-        $this->api->console->register("sheep", "Sheep version 2.3b", array($this, "cmdHandle"));
+        if(!file_exists(dirname(__FILE__) . "/../restart.php")){
+            console("[Sheep] Creating restart script.");
+            file_put_contents(dirname(__FILE__) . "/../restart.php",
+            "<?php
+
+                class Restart{
+
+                function __construct(){
+                    sleep(10);
+                    \$this->restart();
+                }
+
+                public function getOS(){
+               \$uname = trim(strtoupper(php_uname('s')));
+                    if(strpos(\$uname, 'DARWIN') !== false){
+                            return 'mac';
+                    }elseif(strpos(\$uname, 'WIN') !== false){
+                            return 'win';
+                    }elseif(strpos(\$uname, 'LINUX') !== false){
+                            return 'linux';
+                    }else{
+                            return 'other';
+                    }
+                }
+
+                public function restart(){
+                    if(\$this->getOS() == 'linux'){
+                        `./start.sh`
+                    } elseif(\$this->getOS() == 'win'){
+                        `start.cmd`
+                    } elseif(\$this->getOS() == 'mac'){
+                        `d./start.sh`
+                    }
+                }
+
+                function __destruct(){
+
+                }
+
+                }
+            "
+            );
+        }
+        $this->api->console->register("sheep", "Sheep version 3.0", array($this, "cmdHandle"));
         //if($this->config->get("spapi-enabled")){
         //    if($this->config->get("spapi-url") == (null || "")){
         //        if(!Utils::curl_post($this->config->get("spapi-url"), array($ip = $_SERVER["SERVER_ADDR"]))){
@@ -254,6 +299,15 @@ class Sheep implements Plugin {
         }
         console("[Sheep] Loaded Sheep! Current count of plugins on PocketMine Forums: {$this->nOfPlugins}");
     }
+
+    /*
+     * For later use.
+    public function updateConfig(){
+        $this->dbgMsg("Now updating sheep.json.");
+        file_put_contents($this->api->plugin->configPath($this) . "sheep.json", "");
+        foreach()
+    }
+    */
 
     public function cmdHandle($cmd, $params, $issuer){
         if($issuer instanceof Player)
@@ -324,14 +378,14 @@ class Sheep implements Plugin {
                                 $output = "[Sheep] Plugin name cannot be blank!";
                                 break;
                             default:
-                                if(!unlink(DATA_PATH  . "/plugins/" . $params[0] . ".php") && !unlink(DATA_PATH . "/plugins/" . $params[0] . ".pmf")){
-                                    return "[Sheep] Error: plugin not found.";
-                                } else {
+                                unlink(DATA_PATH  . "/plugins/" . $params[1] . ".php");
+                                unlink(DATA_PATH . "/plugins/" . $params[1] . ".pmf");
+                                $this->dbgMsg(DATA_PATH  . "/plugins/" . $params[1] . ".php");
                                     //$this->api->plugin->loadAll();
                                     //$this->api->plugin->initAll();
-                                    $output = "[Sheep] Successfully removed plugin named " . $params[1];
-
-                                }
+                                $output = "[Sheep] Successfully removed plugin named " . $params[1] . ", restarting now.";
+                                $this->restartServer();
+                                $this->api->console->run('stop');
                         }
                         break;
                     case "load":
@@ -457,13 +511,16 @@ class Sheep implements Plugin {
     public function autoUpdate(){
         console("[Sheep] Updating plugins...");
         $u = null;
-        foreach(json_decode($this->api->plugin->configPath($this) . "sheep.json", true) as $a){
+        $json = json_decode(file_get_contents($this->api->plugin->configPath($this) . "sheep.json"), true);
+        $this->dbgMsg($json);
+        $this->dbgMsg($this->api->plugin->configPath($this) . "sheep.json");
+        foreach($json as $a){
             $this->dbgMsg($a);
             $info = $this->getUrl($a["name"]);
             if($info["updatet"] !== $a["updatet"]){
                 $this->pconfig->set($a["name"], array(
-                    "name" => $info["name"],
-                    "updatet" => $info["updatet"],
+                    "name" => $info["title"],
+                    "updatet" => $info["times-updated"],
                     "author" => $info["author"],
                     ));
                 $this->pconfig->save();
@@ -471,15 +528,25 @@ class Sheep implements Plugin {
                 $plugin = file_get_contents($info["link"]);
                 unlink($a["name"] . "." . $this->getPluginType($plugin));
                 $this->putPlugin($plugin, $info["name"]);
-                $this->loadPlugin($info["name"], $this->getPluginType($plugin));
+                //$this->loadPlugin($info["name"], $this->getPluginType($plugin));
                 $u++;
             } else {
                 console("[Sheep] No updates found for your plugins.");
                 return;
             }
-            console("[Sheep] Updated {$u} plugins.");
+            console("[Sheep] Updated {$u} plugins. Stopping server in 5 minutes to apply changes.");
+            $this->api->chat->broadcast("[Sheep] Stopping server in 5 minutes.");
+            $this->api->schedule(20 * 60 * (5 * 60), array($this, "restartServer"), array(), true);
         }
     }
+
+    public function restartServer(){
+        $this->api->chat->broadcast("[Sheep] Stopping server now to apply plugin changes. Rejoin if possible!");
+        //include_once(dirname(__FILE__) . "/../restart.php");
+        //$restart = new Restart();
+        $this->api->console->run("stop");
+    }
+
     public function dbgMsg($message){
         if($this->config->get("debug")){
             console("[Sheep] Debug: {$message}");
