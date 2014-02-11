@@ -414,10 +414,13 @@ class Sheep implements Plugin {
         foreach($json["resources"] as $index => $res){
             $this->dbgMsg("Searching array key {$index}...");
             if($res["title"] == $name){
+                /* No longer in the API
                 if($res["state"] !== "visible"){
                     console("[Sheep] Plugin is awaiting review. Sheep will not download these types of plugins.");
                     return false;
+
                 } else {
+                */
                     /*
                     $dlink = $this->config->get("dlurl");
                     $dlink[2] = $res["title"];
@@ -433,7 +436,7 @@ class Sheep implements Plugin {
                         "link" => $dlink,
                         "times-updated" => $res["times_updated"],
                     );
-                }
+                //}
             }
         }
     }
