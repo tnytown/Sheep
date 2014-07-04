@@ -10,5 +10,5 @@ namespace KnownUnown\Sheep\command;
 
 
 class CommandProcessor {
-    
+
 } 
