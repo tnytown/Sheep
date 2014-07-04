@@ -341,6 +341,7 @@ class Sheep implements Plugin {
                             $author = $array["author"];
                             $link = $array["link"];
                             $updatet = $array["times-updated"];
+                            $prefix = $array["prefix_id"];
                             $this->dbgMsg($array["times-updated"]);
                             $this->dbgMsg($updatet);
                             console("[Sheep] Downloading plugin {$name} by {$author}...");
@@ -414,6 +415,9 @@ class Sheep implements Plugin {
         foreach($json["resources"] as $index => $res){
             $this->dbgMsg("Searching array key {$index}...");
             if($res["title"] == $name){
+                if($res["prefix_id"] == "8"){
+                    console("[Sheep] Plugin utilizes the new API. Sheep will not download/update this plugin.");
+                }
                 /* No longer in the API
                 if($res["state"] !== "visible"){
                     console("[Sheep] Plugin is awaiting review. Sheep will not download these types of plugins.");
@@ -435,6 +439,7 @@ class Sheep implements Plugin {
                         "title" => $res["title"],
                         "link" => $dlink,
                         "times-updated" => $res["times_updated"],
+                        "prefix_id" => $res["prefix_id"],
                     );
                 //}
             }
