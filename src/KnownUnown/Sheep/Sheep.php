@@ -8,28 +8,21 @@
 
 namespace KnownUnown\Sheep;
 
-
-use pocketmine\command\CommandSender;
+use KnownUnown\Sheep\command\SheepCommand;
+use KnownUnown\Sheep\command\SheepCommandMap;
 use pocketmine\plugin\PluginBase;
-use pocketmine\command\Command;
-use KnownUnown\Sheep\command\CommandProcessor;
 
-class Sheep extends PluginBase {
+class Sheep extends PluginBase{
 
+    private $commandMap;
 
     public function onLoad(){
 
     }
 
     public function onEnable(){
-
-    }
-
-    public function onCommand(CommandSender $sender, Command $command, $label, array $args){
-        switch($command->getName()){
-            case "sheep":
-
-        }
+        $this->commandMap = new SheepCommandMap($this->getServer());
+        $this->getServer()->getCommandMap()->register("sheep", new SheepCommand($this, $this->commandMap));
     }
 
     public function onDisable(){

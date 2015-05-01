@@ -7,14 +7,9 @@ author: KnownUnown
 description: A plugin for managing (installing, uninstalling, searching for, etc) other plugins.
 website: https://www.github.com/KnownUnown/Sheep
 
-commands:
-  sheep:
-    description: Master command for Sheep.
-    usage: "/sheep <install|uninstall|search|about> [pluginName]"
-    permission: sheep.command.base
 permissions:
   sheep.command.base:
     description: "Allows the user access to the base Sheep command, but not necessarily the subcommands."
-    default: true
+    default: false
 
 
