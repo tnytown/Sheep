@@ -20,7 +20,7 @@ class SourceFetchEvent extends PluginEvent{
 
     public function __construct(CommandSender $initiator, $plugin){
         if(!is_string($plugin)){
-            throw new PluginException("Plugin provided to SourceFetchEvent must be a String");
+            throw new PluginException("Plugin provided to SourceFetchEvent must be of type String");
         }
         $this->initiator = $initiator;
         $this->plugin = $plugin;
