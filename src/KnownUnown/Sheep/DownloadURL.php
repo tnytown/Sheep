@@ -22,6 +22,6 @@ class DownloadURL {
     }
 
     public function get(){
-        return "forums.pocketmine.net/plugins/" . $this->name . "." . $this->id . "/download/&version=" . $this->version;
+        return "forums.pocketmine.net/plugins/" . $this->name . "." . $this->id . "/download/?version=" . $this->version;
     }
 }

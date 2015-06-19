@@ -24,6 +24,6 @@ class InstallCommand extends Command {
     public function execute(CommandSender $sender, $label, array $args){
         $plugin = implode(" ", $args);
         $sender->sendMessage(sprintf("Fetching info for plugin %s", $plugin));
-        Server::getInstance()->getScheduler()->scheduleAsyncTask(new FetchInfoTask($plugin, InitiatorType::COMMAND_INSTALL, $sender->getName()));
+        Server::getInstance()->getScheduler()->scheduleAsyncTask(new FetchInfoTask($plugin, InitiatorType::COMMAND_INSTALL, Server::getInstance()->getPluginManager()->getPlugin("Sheep")->sourceList->get(0), $sender->getName()));
     }
 }

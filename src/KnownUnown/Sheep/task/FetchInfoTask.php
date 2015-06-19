@@ -21,50 +21,52 @@ use pocketmine\Server;
 
 class FetchInfoTask extends AsyncTask{
 
-    /** @var Sheep */
-    private $plugin;
     private $pluginToFetch;
+    private $source;
 
     private $initiator;
     private $commandSender;
 
-    public function __construct($pluginToFetch, $initiator = InitiatorType::PLUGIN, $commandSender = "CONSOLE"){
+    public function __construct($pluginToFetch, $initiator = InitiatorType::PLUGIN, $source, $commandSender = "CONSOLE"){
         if(!is_string($pluginToFetch)){
             throw new PluginException("Plugin to fetch provided to FetchInfoTask must be of type String");
         } else {
             $this->pluginToFetch = $pluginToFetch;
         }
-        $this->plugin = Server::getInstance()->getPluginManager()->getPlugin("Sheep");
 
         $this->initiator = $initiator;
+        $this->source = $source;
         $this->commandSender = $commandSender;
     }
 
     public function onRun(){
-        $data = json_decode(Utils::getURL($this->plugin->sourceList->get(0) . "/plugins?q=$this->pluginToFetch"), true); //temp: who would even write another search api anyway
+        $data = json_decode(Utils::getURL($this->source . "/search?q=$this->pluginToFetch"), true); //temp: who would even write another search api anyway
         if($data === false) $this->setResult(new Response());
-
         $hits = $data['hits']['total'];
         $info = $data['hits']['hits'];
         if($hits === 1){
             $plugininfo = $info[0]['_source'];
-            $this->setResult(new Response(ResponseType::SUCCESS_SINGLE_RESULT, new PluginInfo($plugininfo['title'], $plugininfo['username'], $plugininfo['description'],
-                $plugininfo['category_title'], $plugininfo['rating_avg'], $plugininfo['download_count'], $plugininfo['resource_id'], $plugininfo['current_version_id'])));
+            $result = new Response(ResponseType::SUCCESS_SINGLE_RESULT, new PluginInfo($plugininfo['title'], $plugininfo['username'], $plugininfo['description'],
+                $plugininfo['category_title'], $plugininfo['rating_avg'], $plugininfo['download_count'], $plugininfo['resource_id'], $plugininfo['current_version_id']));
+            safe_var_dump($result);
+            $this->setResult($result);
         } elseif($hits === 0){
             $this->setResult(new Response(ResponseType::FAILURE_NO_RESULTS));
         } elseif($hits > 1){
-            $sdata = json_decode(Utils::getUrl($this->plugin->sourceList->get(0) . "/autocomplete?q=$this->pluginToFetch"), true);
+            $sdata = json_decode(Utils::getUrl($this->source . "/autocomplete?q=$this->pluginToFetch"), true);
+            var_dump($sdata);
             if($sdata === false) $this->setResult(new Response());
             $suggestions = "";
-            foreach($sdata['plugin-suggest']['options'] as $option){
+            foreach($sdata['plugin-suggest'] as $option){
                 $suggestions .= $option['text'] . ", ";
             }
+            $suggestions = rtrim($suggestions, ', ');
             $this->setResult(new Response(ResponseType::SUCCESS_MULTIPLE_RESULTS, $suggestions));
         }
     }
 
     public function onCompletion(Server $server){
-        $result = ['response' => $this->getResult(), 'commandSender' => $this->commandSender, 'initiator' => $this->initiator, 'task' => 0];
-        $this->plugin->onTaskFinished($result);
+        $result = ['response' => $this->getResult(), 'commandSender' => $this->commandSender, 'initiator' => $this->initiator, 'plugin' => $this->pluginToFetch, 'task' => 0];
+        $server->getPluginManager()->getPlugin("Sheep")->onTaskFinished($result);
     }
 }

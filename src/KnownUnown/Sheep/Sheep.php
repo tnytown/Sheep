@@ -77,7 +77,7 @@ class Sheep extends PluginBase{
                     }
             }
         } else {
-            $this->message($sender, sprintf('Successfully installed plugin!'));
+            $this->message($sender, sprintf('Successfully installed plugin %s!', $result['response']->getName()));
         }
     }
 

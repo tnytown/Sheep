@@ -20,8 +20,6 @@ use pocketmine\utils\Utils;
 
 class FetchPluginTask extends AsyncTask{
 
-    /** @var Sheep */
-    private $plugin;
     private $pluginToFetch;
     private $isRepo;
 
@@ -32,7 +30,6 @@ class FetchPluginTask extends AsyncTask{
         if(!($pluginToFetch instanceof PluginInfo)){
             throw new PluginException("Plugin to fetch provided to FetchPluginTask must be of type PluginInfo");
         } else $this->pluginToFetch = $pluginToFetch;
-        $this->plugin = Server::getInstance()->getPluginManager()->getPlugin("Sheep");
 
         $this->commandSender = $commandSender;
         $this->initiator = $initiator;
@@ -43,15 +40,22 @@ class FetchPluginTask extends AsyncTask{
         if($this->isRepo){
             $plugin = Utils::getURL((new DownloadURL($this->pluginToFetch->getId(), $this->pluginToFetch->getName(), $this->pluginToFetch->getVersion()))->get());
             if($plugin !== false){
-                $path = Server::getInstance()->getPluginPath() . $this->pluginToFetch->getName() . ".phar";
-                file_put_contents($path, $plugin);
-                Server::getInstance()->getPluginManager()->loadPlugin($path);
+                $this->setResult($plugin);
             }
         }
     }
 
     public function onCompletion(Server $server){
-        $result = ['response' => $this->getResult(), 'commandSender' => $this->commandSender, 'initiator' => $this->initiator, 'task' => 0];
-        $this->plugin->onTaskFinished($result);
+        /** @var Sheep $plugin */
+        $plugin = $server->getPluginManager()->getPlugin('Sheep');
+        $path = $server->getPluginPath() . $this->pluginToFetch->getName() . ".phar";
+        $result = ['response' => $this->pluginToFetch, 'commandSender' => $this->commandSender, 'initiator' => $this->initiator, 'task' => 1];
+
+        file_put_contents($path, $this->getResult());
+        $plugin->message($this->commandSender, sprintf('Fetched plugin %s [%d b]', $this->pluginToFetch->getName(), filesize($path)));
+        $installed = $server->getPluginManager()->loadPlugin($plugin);
+        $installed->onLoad();
+        $installed->onEnable();
+        $plugin->onTaskFinished($result);
     }
 }
