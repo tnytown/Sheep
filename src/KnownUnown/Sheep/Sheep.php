@@ -10,9 +10,7 @@ namespace KnownUnown\Sheep;
 
 use KnownUnown\Sheep\command\SheepCommand;
 use KnownUnown\Sheep\command\SheepCommandMap;
-use KnownUnown\Sheep\task\FetchInfoTask;
 use KnownUnown\Sheep\task\FetchPluginTask;
-use pocketmine\command\ConsoleCommandSender;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 
@@ -48,6 +46,7 @@ class Sheep extends PluginBase{
     }
 
     public function onTaskFinished($result){
+        $sender = $result['commandSender'];
         if($result['task'] === 0){
             /** @var Response $response */
             $response = $result['response'];
@@ -55,21 +54,37 @@ class Sheep extends PluginBase{
                 case InitiatorType::COMMAND_INSTALL:
                     switch($response->getType()){
                         case ResponseType::SUCCESS_SINGLE_RESULT:
-                            $task = new FetchPluginTask($response->getData(), true, InitiatorType::COMMAND_INSTALL, $result['commandSender']);
+                            $task = new FetchPluginTask($response->getData(), true, InitiatorType::COMMAND_INSTALL, $sender);
                             $this->getServer()->getScheduler()->scheduleAsyncTask($task);
                             break;
                         case ResponseType::SUCCESS_MULTIPLE_RESULTS:
-                            $this->getLogger()->error(sprintf('Couldn\'t find plugin %s. You may have meant: %s.', $result['plugin'], $response->getData()));
+                            $this->message($sender, sprintf('Couldn\'t find plugin %s. You may have meant: %s.', $result['plugin'], $response->getData()));
                             break;
                         default:
-                            $this->getLogger()->error(sprintf('There was an unknown error while fetching information for plugin %s.', $result['plugin']));
+                            $this->message($sender, sprintf('There was an unknown error while fetching information for plugin %s.', $result['plugin']));
                     }
                     break;
                 case InitiatorType::COMMAND_INFO:
                     switch($response->getType()){
                         case ResponseType::SUCCESS_SINGLE_RESULT:
+                            /** @var PluginInfo $info */
+                            $info = $response->getData();
+                            $this->message($sender, sprintf('Information about plugin %s, version %f:', $info->getName(), $info->getVersion()));
+                            $this->message($sender, sprintf('Description: %s'), $info->getDesc());
+                            $this->message($sender, sprintf('Category: %s, Rating: %f, Download count: %d', $info->getCat(), $info->getRating(), $info->getDownloads()));
                     }
             }
+        } else {
+            $this->message($sender, sprintf('Successfully installed plugin!'));
+        }
+    }
+
+    public function message($identifier, $message, $level = "info"){
+        if($identifier === "CONSOLE"){
+            $this->getLogger()->log($level, $message);
+        } else {
+            $player = $this->getServer()->getPlayer($identifier);
+            if($player !== null) $player->sendMessage($message);
         }
     }
 

@@ -92,7 +92,7 @@ class PluginInfo {
     }
 
     /**
-     * @return int
+     * @return float
      */
     public function getVersion()
     {

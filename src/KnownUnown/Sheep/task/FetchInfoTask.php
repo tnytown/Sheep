@@ -28,11 +28,14 @@ class FetchInfoTask extends AsyncTask{
     private $initiator;
     private $commandSender;
 
-    public function __construct($pluginToFetch, $initiator = InitiatorType::PLUGIN, $commandSender = null){
+    public function __construct($pluginToFetch, $initiator = InitiatorType::PLUGIN, $commandSender = "CONSOLE"){
         if(!is_string($pluginToFetch)){
             throw new PluginException("Plugin to fetch provided to FetchInfoTask must be of type String");
         } else $this->pluginToFetch = $pluginToFetch;
         $this->plugin = Server::getInstance()->getPluginManager()->getPlugin("Sheep");
+
+        $this->initiator = $initiator;
+        $this->commandSender = $commandSender;
     }
 
     public function onRun(){
@@ -59,6 +62,7 @@ class FetchInfoTask extends AsyncTask{
     }
 
     public function onCompletion(Server $server){
-
+        $result = ['response' => $this->getResult(), 'commandSender' => $this->commandSender, 'initiator' => $this->initiator, 'task' => 0];
+        $this->plugin->onTaskFinished($result);
     }
 }
