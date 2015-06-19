@@ -12,6 +12,7 @@ use KnownUnown\Sheep\command\InfoCommand;
 use KnownUnown\Sheep\command\InstallCommand;
 use KnownUnown\Sheep\command\SheepCommand;
 use KnownUnown\Sheep\command\SheepCommandMap;
+use KnownUnown\Sheep\command\UninstallCommand;
 use KnownUnown\Sheep\task\FetchPluginTask;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
@@ -45,6 +46,7 @@ class Sheep extends PluginBase{
         $this->commandMap = new SheepCommandMap($this->getServer());
         $this->getServer()->getCommandMap()->register("sheep", new SheepCommand($this, $this->commandMap));
         $this->commandMap->register("sheep", new InstallCommand());
+        $this->commandMap->register('sheep', new UninstallCommand());
         $this->commandMap->register("sheep", new InfoCommand());
         $this->getLogger()->info('Done!');
     }

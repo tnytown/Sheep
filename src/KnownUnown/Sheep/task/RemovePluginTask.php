@@ -30,17 +30,18 @@ class RemovePluginTask extends PluginTask{
         if($this->pluginToRemove === null){
             $this->plugin->message($this->commandSender, "Plugin not found!", "error");
         } else {
+            $deleted = false;
             $this->plugin->getServer()->getPluginManager()->disablePlugin($this->pluginToRemove);
-            foreach(new \RegexIterator(new \DirectoryIterator($this->plugin->getServer()->getPluginPath()), sprintf('.*%s.*', $this->pluginToRemove->getName())) as $file){
-                if(!is_dir($file)){
-                    @unlink($file);
+            foreach(new \RegexIterator(new \DirectoryIterator($this->plugin->getServer()->getPluginPath()), sprintf('/.*%s.*/', $this->pluginToRemove->getName())) as $file){
+                if(!is_dir($this->plugin->getServer()->getPluginPath() . $file)) {
+                    unlink($this->plugin->getServer()->getPluginPath() . $file);
                     $deleted = true;
                 }
             }
-            if(!isset($deleted)){
-                $this->plugin->message($this->commandSender, sprintf("Failed to remove plugin %s", $this->pluginToRemove->getName()), "error");
+            if($deleted !== true){
+                $this->plugin->message($this->commandSender, sprintf("Failed to remove plugin %s.", $this->pluginToRemove->getName()), "error");
             } else {
-                $this->plugin->message($this->commandSender, sprintf("Successfully removed plugin %s", $this->pluginToRemove->getName()));
+                $this->plugin->message($this->commandSender, sprintf("Successfully removed plugin %s!", $this->pluginToRemove->getName()));
             }
         }
     }

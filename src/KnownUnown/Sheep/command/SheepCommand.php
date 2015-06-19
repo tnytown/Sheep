@@ -12,6 +12,7 @@ namespace KnownUnown\Sheep\command;
 use KnownUnown\Sheep\Sheep;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\utils\TextFormat;
 
 class SheepCommand extends Command{
 
@@ -26,10 +27,15 @@ class SheepCommand extends Command{
 
     public function execute(CommandSender $sender, $command, array $args){
         if($args === []){
-            $sender->sendMessage($this->getUsage());
+            $sender->sendMessage(TextFormat::RED . "Usage:" . $this->getUsage());
         } else {
             $label = array_shift($args);
-            $this->commandMap->getCommand($label)->execute($sender, $label, $args);
+            $command = $this->commandMap->getCommand($label);
+            if($command !== null){
+                $command->execute($sender, $label, $args);
+            } else {
+                $sender->sendMessage(TextFormat::RED . "Usage: " . $this->getUsage());
+            }
         }
     }
 }
