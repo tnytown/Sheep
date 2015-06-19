@@ -52,9 +52,9 @@ class FetchInfoTask extends AsyncTask{
             if($sdata === false) $this->setResult(new Response());
             $suggestions = "";
             foreach($sdata['plugin-suggest']['options'] as $option){
-                $suggestions .= $option['text'];
+                $suggestions .= $option['text'] . ", ";
             }
-            $this->setResult(new Response(ResponseType::SUCCESS_MULTIPLE_RESULTS), $suggestions);
+            $this->setResult(new Response(ResponseType::SUCCESS_MULTIPLE_RESULTS, $suggestions));
         }
     }
 

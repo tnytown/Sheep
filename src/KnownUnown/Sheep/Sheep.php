@@ -11,6 +11,7 @@ namespace KnownUnown\Sheep;
 use KnownUnown\Sheep\command\SheepCommand;
 use KnownUnown\Sheep\command\SheepCommandMap;
 use KnownUnown\Sheep\task\FetchInfoTask;
+use KnownUnown\Sheep\task\FetchPluginTask;
 use pocketmine\command\ConsoleCommandSender;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
@@ -47,20 +48,28 @@ class Sheep extends PluginBase{
     }
 
     public function onTaskFinished($result){
-        switch($result['initiator']){
-            case InitiatorType::PLUGIN:
-                /** @var $response Response */
-                $response = $result['response'];
-                switch($response->getType()){
-                    case ResponseType::SUCCESS_SINGLE_RESULT:
-                        break;
-                    case ResponseType::SUCCESS_MULTIPLE_RESULTS:
-                        break;
-                    case ResponseType::FAILURE_NO_RESULTS:
-                        break;
-                    case ResponseType::FAILURE_GENERAL:
-                        break;
-                }
+        if($result['task'] === 0){
+            /** @var Response $response */
+            $response = $result['response'];
+            switch($result['initiator']){
+                case InitiatorType::COMMAND_INSTALL:
+                    switch($response->getType()){
+                        case ResponseType::SUCCESS_SINGLE_RESULT:
+                            $task = new FetchPluginTask($response->getData(), true, InitiatorType::COMMAND_INSTALL, $result['commandSender']);
+                            $this->getServer()->getScheduler()->scheduleAsyncTask($task);
+                            break;
+                        case ResponseType::SUCCESS_MULTIPLE_RESULTS:
+                            $this->getLogger()->error(sprintf('Couldn\'t find plugin %s. You may have meant: %s.', $result['plugin'], $response->getData()));
+                            break;
+                        default:
+                            $this->getLogger()->error(sprintf('There was an unknown error while fetching information for plugin %s.', $result['plugin']));
+                    }
+                    break;
+                case InitiatorType::COMMAND_INFO:
+                    switch($response->getType()){
+                        case ResponseType::SUCCESS_SINGLE_RESULT:
+                    }
+            }
         }
     }
 
