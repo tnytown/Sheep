@@ -8,6 +8,7 @@
 
 namespace KnownUnown\Sheep;
 
+use KnownUnown\Sheep\command\InfoCommand;
 use KnownUnown\Sheep\command\InstallCommand;
 use KnownUnown\Sheep\command\SheepCommand;
 use KnownUnown\Sheep\command\SheepCommandMap;
@@ -44,7 +45,8 @@ class Sheep extends PluginBase{
         $this->commandMap = new SheepCommandMap($this->getServer());
         $this->getServer()->getCommandMap()->register("sheep", new SheepCommand($this, $this->commandMap));
         $this->commandMap->register("sheep", new InstallCommand());
-
+        $this->commandMap->register("sheep", new InfoCommand());
+        $this->getLogger()->info('Done!');
     }
 
     public function onTaskFinished($result){
@@ -71,9 +73,13 @@ class Sheep extends PluginBase{
                         case ResponseType::SUCCESS_SINGLE_RESULT:
                             /** @var PluginInfo $info */
                             $info = $response->getData();
-                            $this->message($sender, sprintf('Information about plugin %s, version %f:', $info->getName(), $info->getVersion()));
-                            $this->message($sender, sprintf('Description: %s'), $info->getDesc());
-                            $this->message($sender, sprintf('Category: %s, Rating: %f, Download count: %d', $info->getCat(), $info->getRating(), $info->getDownloads()));
+                            $this->message($sender, sprintf('Information about plugin %s, version id %d:', $info->getName(), $info->getVersion()));
+                            $this->message($sender, sprintf('tagline: %s', $info->getDesc()));
+                            $this->message($sender, sprintf('Category: %s, Rating: %s/5, Download count: %d', $info->getCat(), $info->getRating(), $info->getDownloads()));
+                            $this->message($sender, sprintf('Install %s by running /sheep install %s!', $info->getName(), $info->getName()));
+                            break;
+                        case ResponseType::SUCCESS_MULTIPLE_RESULTS:
+                            $this->message($sender, sprintf('Couldn\'t find plugin %s. You may have meant: %s.', $result['plugin'], $response->getData()));
                     }
             }
         } else {

@@ -50,12 +50,15 @@ class FetchPluginTask extends AsyncTask{
         $plugin = $server->getPluginManager()->getPlugin('Sheep');
         $path = $server->getPluginPath() . $this->pluginToFetch->getName() . ".phar";
         $result = ['response' => $this->pluginToFetch, 'commandSender' => $this->commandSender, 'initiator' => $this->initiator, 'task' => 1];
+        if(strpos($this->getResult(), '__HALT_COMPILER();') !== false){
+            file_put_contents($path, $this->getResult());
+            $plugin->message($this->commandSender, sprintf('Fetched plugin %s [%d bytes]', $this->pluginToFetch->getName(), filesize($path)));
 
-        file_put_contents($path, $this->getResult());
-        $plugin->message($this->commandSender, sprintf('Fetched plugin %s [%d b]', $this->pluginToFetch->getName(), filesize($path)));
-        $installed = $server->getPluginManager()->loadPlugin($plugin);
-        $installed->onLoad();
-        $installed->onEnable();
-        $plugin->onTaskFinished($result);
+            $installed = $server->getPluginManager()->loadPlugin($path);
+            $server->getPluginManager()->enablePlugin($installed);
+            $plugin->onTaskFinished($result);
+        } else {
+            $plugin->message($this->commandSender, sprintf('Error: corrupt phar file. Plugin %s was not installed.', $this->pluginToFetch->getName()));
+        }
     }
 }

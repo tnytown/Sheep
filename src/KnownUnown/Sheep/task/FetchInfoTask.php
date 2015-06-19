@@ -13,7 +13,6 @@ use KnownUnown\Sheep\InitiatorType;
 use KnownUnown\Sheep\PluginInfo;
 use KnownUnown\Sheep\Response;
 use KnownUnown\Sheep\ResponseType;
-use KnownUnown\Sheep\Sheep;
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\utils\PluginException;
 use pocketmine\utils\Utils;
@@ -44,17 +43,22 @@ class FetchInfoTask extends AsyncTask{
         if($data === false) $this->setResult(new Response());
         $hits = $data['hits']['total'];
         $info = $data['hits']['hits'];
+        $actual = 0;
+        foreach($info as $key => $val){
+            if(strtolower($val['_source']['title']) === strtolower($this->pluginToFetch)){
+                $actual = $key;
+                $hits = 1;
+            }
+        }
         if($hits === 1){
-            $plugininfo = $info[0]['_source'];
-            $result = new Response(ResponseType::SUCCESS_SINGLE_RESULT, new PluginInfo($plugininfo['title'], $plugininfo['username'], $plugininfo['description'],
+            $plugininfo = $info[$actual]['_source'];
+            $result = new Response(ResponseType::SUCCESS_SINGLE_RESULT, new PluginInfo($plugininfo['title'], $plugininfo['username'], $plugininfo['tag_line'],
                 $plugininfo['category_title'], $plugininfo['rating_avg'], $plugininfo['download_count'], $plugininfo['resource_id'], $plugininfo['current_version_id']));
-            safe_var_dump($result);
             $this->setResult($result);
         } elseif($hits === 0){
             $this->setResult(new Response(ResponseType::FAILURE_NO_RESULTS));
         } elseif($hits > 1){
             $sdata = json_decode(Utils::getUrl($this->source . "/autocomplete?q=$this->pluginToFetch"), true);
-            var_dump($sdata);
             if($sdata === false) $this->setResult(new Response());
             $suggestions = "";
             foreach($sdata['plugin-suggest'] as $option){
