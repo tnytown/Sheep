@@ -31,7 +31,9 @@ class FetchInfoTask extends AsyncTask{
     public function __construct($pluginToFetch, $initiator = InitiatorType::PLUGIN, $commandSender = "CONSOLE"){
         if(!is_string($pluginToFetch)){
             throw new PluginException("Plugin to fetch provided to FetchInfoTask must be of type String");
-        } else $this->pluginToFetch = $pluginToFetch;
+        } else {
+            $this->pluginToFetch = $pluginToFetch;
+        }
         $this->plugin = Server::getInstance()->getPluginManager()->getPlugin("Sheep");
 
         $this->initiator = $initiator;

@@ -11,10 +11,9 @@ namespace KnownUnown\Sheep\command;
 
 use KnownUnown\Sheep\Sheep;
 use pocketmine\command\Command;
-use pocketmine\command\CommandExecutor;
 use pocketmine\command\CommandSender;
 
-class SheepCommand extends Command implements CommandExecutor{
+class SheepCommand extends Command{
 
     private $plugin;
     private $commandMap;
@@ -25,23 +24,12 @@ class SheepCommand extends Command implements CommandExecutor{
         parent::__construct("sheep", "Base command for the Sheep plugin", "/sheep <install|uninstall|update|upgrade|about>");
     }
 
-    /**
-     * @param CommandSender $sender
-     * @param Command $command
-     * @param string $label
-     * @param string[] $args
-     *
-     * @return boolean
-     */
-    public function onCommand(CommandSender $sender, Command $command, $label, array $args){
-        if($args === (null || [] || false)){
-            $this->execute($sender, $label, $args);
-        }
-        $label = array_shift($args);
-        $this->commandMap->getCommand($command)->execute($sender, $label, $args);
-    }
-
     public function execute(CommandSender $sender, $command, array $args){
-        $sender->sendMessage($this->getUsage());
+        if($args === []){
+            $sender->sendMessage($this->getUsage());
+        } else {
+            $label = array_shift($args);
+            $this->commandMap->getCommand($label)->execute($sender, $label, $args);
+        }
     }
 }

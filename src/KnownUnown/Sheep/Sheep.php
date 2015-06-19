@@ -8,6 +8,7 @@
 
 namespace KnownUnown\Sheep;
 
+use KnownUnown\Sheep\command\InstallCommand;
 use KnownUnown\Sheep\command\SheepCommand;
 use KnownUnown\Sheep\command\SheepCommandMap;
 use KnownUnown\Sheep\task\FetchPluginTask;
@@ -42,6 +43,7 @@ class Sheep extends PluginBase{
         $this->getLogger()->info("Setting up commands.");
         $this->commandMap = new SheepCommandMap($this->getServer());
         $this->getServer()->getCommandMap()->register("sheep", new SheepCommand($this, $this->commandMap));
+        $this->commandMap->register("sheep", new InstallCommand());
 
     }
 
