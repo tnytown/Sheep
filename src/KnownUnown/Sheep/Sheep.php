@@ -54,35 +54,37 @@ class Sheep extends PluginBase{
     public function onTaskFinished($result){
         $sender = $result['commandSender'];
         if($result['task'] === 0){
-            /** @var Response $response */
+            /** @var Response[] $response */
             $response = $result['response'];
             switch($result['initiator']){
                 case InitiatorType::COMMAND_INSTALL:
-                    switch($response->getType()){
+                    switch($response[0]->getType()){
                         case ResponseType::SUCCESS_SINGLE_RESULT:
-                            $task = new FetchPluginTask($response->getData(), true, InitiatorType::COMMAND_INSTALL, $sender);
+                            $task = new FetchPluginTask($response[0]->getData(), true, InitiatorType::COMMAND_INSTALL, $sender);
                             $this->getServer()->getScheduler()->scheduleAsyncTask($task);
                             break;
                         case ResponseType::SUCCESS_MULTIPLE_RESULTS:
-                            $this->message($sender, sprintf('Couldn\'t find plugin %s. You may have meant: %s.', $result['plugin'], $response->getData()));
+                            $this->message($sender, sprintf('Couldn\'t find plugin %s. You may have meant: %s.', $result['plugin'][0], $response->getData()));
                             break;
                         default:
-                            $this->message($sender, sprintf('There was an unknown error while fetching information for plugin %s.', $result['plugin']));
+                            $this->message($sender, sprintf('There was an unknown error while fetching information for plugin %s.', $result['plugin'][0]));
                     }
                     break;
                 case InitiatorType::COMMAND_INFO:
-                    switch($response->getType()){
+                    switch($response[0]->getType()){
                         case ResponseType::SUCCESS_SINGLE_RESULT:
                             /** @var PluginInfo $info */
-                            $info = $response->getData();
+                            $info = $response[0]->getData();
                             $this->message($sender, sprintf('Information about plugin %s, version id %d:', $info->getName(), $info->getVersion()));
-                            $this->message($sender, sprintf('tagline: %s', $info->getDesc()));
+                            $this->message($sender, sprintf('Tagline: %s', $info->getDesc()));
                             $this->message($sender, sprintf('Category: %s, Rating: %s/5, Download count: %d', $info->getCat(), $info->getRating(), $info->getDownloads()));
                             $this->message($sender, sprintf('Install %s by running /sheep install %s!', $info->getName(), $info->getName()));
                             break;
                         case ResponseType::SUCCESS_MULTIPLE_RESULTS:
-                            $this->message($sender, sprintf('Couldn\'t find plugin %s. You may have meant: %s.', $result['plugin'], $response->getData()));
+                            $this->message($sender, sprintf('Couldn\'t find plugin %s. You may have meant: %s.', $result['plugin'][0], $response->getData()));
                     }
+                    break;
+                case InitiatorType::PLUGIN_DEP:
             }
         } else {
             $this->message($sender, sprintf('Successfully installed plugin %s!', $result['response']->getName()));

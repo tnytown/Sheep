@@ -15,5 +15,6 @@ class InitiatorType {
     const COMMAND_INSTALL = 1;
     const COMMAND_INFO = 2;
     const PLUGIN = 3;
+    const PLUGIN_DEP = 4;
 
 }

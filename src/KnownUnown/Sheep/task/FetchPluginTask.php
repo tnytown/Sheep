@@ -13,6 +13,8 @@ use KnownUnown\Sheep\Sheep;
 use KnownUnown\Sheep\DownloadURL;
 use KnownUnown\Sheep\InitiatorType;
 use KnownUnown\Sheep\PluginInfo;
+use pocketmine\plugin\PharPluginLoader;
+use pocketmine\plugin\PluginDescription;
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\utils\PluginException;
 use pocketmine\Server;
@@ -53,6 +55,9 @@ class FetchPluginTask extends AsyncTask{
         if(strpos($this->getResult(), '__HALT_COMPILER();') !== false){
             file_put_contents($path, $this->getResult());
             $plugin->message($this->commandSender, sprintf('Fetched plugin %s [%d bytes]', $this->pluginToFetch->getName(), filesize($path)));
+            $desc = $this->getPluginDescription($path);
+            $softDeps = $desc->getSoftDepend();
+            $hardDeps = $desc->getDepend();
 
             $installed = $server->getPluginManager()->loadPlugin($path);
             $server->getPluginManager()->enablePlugin($installed);
@@ -60,5 +65,16 @@ class FetchPluginTask extends AsyncTask{
         } else {
             $plugin->message($this->commandSender, sprintf('Error: corrupt phar file. Plugin %s was not installed.', $this->pluginToFetch->getName()));
         }
+    }
+
+    public function getPluginDescription($file){
+        $phar = new \Phar($file);
+        if(isset($phar["plugin.yml"])){
+            $pluginYml = $phar["plugin.yml"];
+            if($pluginYml instanceof \PharFileInfo){
+                return new PluginDescription($pluginYml->getContent());
+            }
+        }
+        return null;
     }
 }
