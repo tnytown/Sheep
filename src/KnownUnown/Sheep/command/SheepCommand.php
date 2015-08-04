@@ -26,8 +26,13 @@ class SheepCommand extends Command{
     }
 
     public function execute(CommandSender $sender, $command, array $args){
+        if(!$sender->hasPermission('sheep.command.base')){
+            //DIEEE POTATOOOOOO
+            $sender->sendMessage(TextFormat::RED . 'Haha, you can\'t use this!');
+            return false;
+        }
         if($args === []){
-            $sender->sendMessage(TextFormat::RED . "Usage:" . $this->getUsage());
+            $sender->sendMessage(TextFormat::RED . "Usage: " . $this->getUsage());
         } else {
             $label = array_shift($args);
             $command = $this->commandMap->getCommand($label);
@@ -37,5 +42,6 @@ class SheepCommand extends Command{
                 $sender->sendMessage(TextFormat::RED . "Usage: " . $this->getUsage());
             }
         }
+        return true;
     }
 }

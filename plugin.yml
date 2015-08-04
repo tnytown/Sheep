@@ -10,6 +10,6 @@ website: https://www.github.com/KnownUnown/Sheep
 permissions:
   sheep.command.base:
     description: "Allows the user access to the base Sheep command, but not necessarily the subcommands."
-    default: false
+    default: op
 
 
