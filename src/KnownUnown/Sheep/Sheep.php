@@ -20,6 +20,7 @@ use KnownUnown\Sheep\task\FetchPluginTask;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 use pocketmine\utils\PluginException;
+use pocketmine\utils\TextFormat;
 
 class Sheep extends PluginBase{
 
@@ -65,6 +66,12 @@ class Sheep extends PluginBase{
                 case InitiatorType::COMMAND_INSTALL:
                     switch($response[0]->getType()){
                         case ResponseType::SUCCESS_SINGLE_RESULT:
+                            foreach($this->getServer()->getPluginManager()->getPlugins() as $plugin){
+                                if($plugin->getName() === $result['response'][0]->getData()->getName()){
+                                    $this->message($sender, TextFormat::RED . 'This plugin is already installed.');
+                                    return;
+                                }
+                            }
                             $task = new FetchPluginTask($response[0]->getData(), true, InitiatorType::COMMAND_INSTALL, $sender);
                             $this->getServer()->getScheduler()->scheduleAsyncTask($task);
                             break;
