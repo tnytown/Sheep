@@ -9,26 +9,31 @@
 namespace KnownUnown\Sheep\task;
 
 
-use pocketmine\scheduler\AsyncTask;
+use KnownUnown\Sheep\Sheep;
+use pocketmine\scheduler\PluginTask;
 
-class FetchDependTask extends AsyncTask{
+class FetchDependTask extends PluginTask{
 
     private $plugin;
+
+    private $fetchPlugin;
     private $pluginData;
     private $softDepend;
     private $depend;
 
     private $commandSender;
 
-    public function __construct($plugin, $pluginData, array $softDepend, array $depend, $commandSender = "CONSOLE"){
+    public function __construct(Sheep $plugin, $fetchPlugin, $pluginData, array $softDepend, array $depend, $commandSender = "CONSOLE"){
+        parent::__construct($plugin);
         $this->plugin = $plugin;
+        $this->fetchPlugin = $fetchPlugin;
         $this->pluginData = $pluginData;
         $this->softDepend = $softDepend;
         $this->depend = $depend;
         $this->commandSender = $commandSender;
     }
 
-    public function onRun(){
-
+    public function onRun($currentTick){
+        $this->plugin->message($this->commandSender, 'Not implemented :(');
     }
 }

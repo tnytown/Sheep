@@ -21,6 +21,6 @@ class AboutCommand extends Command{
 
     public function execute(CommandSender $sender, $label, array $args){
         $plugin = Server::getInstance()->getPluginManager()->getPlugin('Sheep');
-        $sender->sendMessage("Sheep v%s by %s", $plugin->getDescription()->getVersion(), $plugin->getDescription()->getAuthors());
+        $sender->sendMessage(sprintf('Sheep v%s by %s', $plugin->getDescription()->getVersion(), implode(', ', $plugin->getDescription()->getAuthors())));
     }
 }

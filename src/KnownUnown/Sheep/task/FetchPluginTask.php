@@ -54,14 +54,28 @@ class FetchPluginTask extends AsyncTask{
         $result = ['response' => $this->pluginToFetch, 'commandSender' => $this->commandSender, 'initiator' => $this->initiator, 'task' => 1];
         if(strpos($this->getResult(), '__HALT_COMPILER();') !== false){
             file_put_contents($path, $this->getResult());
-            $plugin->message($this->commandSender, sprintf('Fetched plugin %s [%d bytes]', $this->pluginToFetch->getName(), filesize($path)));
             $desc = $this->getPluginDescription($path);
-            $softDeps = $desc->getSoftDepend();
             $hardDeps = $desc->getDepend();
-
-            $installed = $server->getPluginManager()->loadPlugin($path);
-            $server->getPluginManager()->enablePlugin($installed);
-            $plugin->onTaskFinished($result);
+            $realDeps = [];
+            foreach($server->getPluginManager()->getPlugins() as $name){
+                foreach($hardDeps as $depends){
+                    if($name !== $depends){
+                        $realDeps[] = $depends;
+                    }
+                }
+            }
+            $plugin->message($this->commandSender, sprintf('Need to fetch %s plugins as dependencies.', count($realDeps)));
+            if($realDeps !== []){
+                $plugin->message($this->commandSender, sprintf('Attempting to resolve dependencies for plugin %s...', $this->pluginToFetch->getName()));
+                $result['deps'] = $realDeps;
+                //$plugin->onTaskFinished($result);
+                $plugin->message($this->commandSender, 'We\'re sorry! At the moment, Sheep does not support dependency fetching.');
+            } else {
+                $plugin->message($this->commandSender, sprintf('Fetched plugin %s [%d bytes]', $this->pluginToFetch->getName(), filesize($path)));
+                $installed = $server->getPluginManager()->loadPlugin($path);
+                $server->getPluginManager()->enablePlugin($installed);
+                $plugin->onTaskFinished($result);
+            }
         } else {
             $plugin->message($this->commandSender, sprintf('Error: corrupt phar file. Plugin %s was not installed.', $this->pluginToFetch->getName()));
         }
@@ -75,6 +89,7 @@ class FetchPluginTask extends AsyncTask{
                 return new PluginDescription($pluginYml->getContent());
             }
         }
+
         return null;
     }
 }

@@ -8,14 +8,18 @@
 
 namespace KnownUnown\Sheep;
 
+use KnownUnown\Sheep\command\AboutCommand;
 use KnownUnown\Sheep\command\InfoCommand;
 use KnownUnown\Sheep\command\InstallCommand;
 use KnownUnown\Sheep\command\SheepCommand;
 use KnownUnown\Sheep\command\SheepCommandMap;
 use KnownUnown\Sheep\command\UninstallCommand;
+use KnownUnown\Sheep\task\FetchDependTask;
+use KnownUnown\Sheep\task\FetchInfoTask;
 use KnownUnown\Sheep\task\FetchPluginTask;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
+use pocketmine\utils\PluginException;
 
 class Sheep extends PluginBase{
 
@@ -39,7 +43,7 @@ class Sheep extends PluginBase{
         $this->saveResource("dist-sources.yml");
         $this->saveResource("config.yml");
         $this->sourceList = new Config($this->getDataFolder() . "dist-sources.yml", Config::YAML);
-        $this->installedList = new Config($this->getDataFolder() . "installed-plugins.json", Config::JSON);
+        //$this->installedList = new Config($this->getDataFolder() . "installed-plugins.json", Config::JSON);
         $this->config = new Config($this->getDataFolder() . "config.yml", Config::YAML);
         /* Command Setup */
         $this->getLogger()->info("Setting up commands.");
@@ -48,6 +52,7 @@ class Sheep extends PluginBase{
         $this->commandMap->register("sheep", new InstallCommand());
         $this->commandMap->register('sheep', new UninstallCommand());
         $this->commandMap->register("sheep", new InfoCommand());
+        $this->commandMap->register('sheep', new AboutCommand());
         $this->getLogger()->info('Done!');
     }
 
@@ -64,7 +69,7 @@ class Sheep extends PluginBase{
                             $this->getServer()->getScheduler()->scheduleAsyncTask($task);
                             break;
                         case ResponseType::SUCCESS_MULTIPLE_RESULTS:
-                            $this->message($sender, sprintf('Couldn\'t find plugin %s. You may have meant: %s.', $result['plugin'][0], $response->getData()));
+                            $this->message($sender, sprintf('Couldn\'t find plugin %s. You may have meant: %s.', $result['plugin'][0], $response[0]->getData()));
                             break;
                         default:
                             $this->message($sender, sprintf('There was an unknown error while fetching information for plugin %s.', $result['plugin'][0]));
@@ -81,13 +86,22 @@ class Sheep extends PluginBase{
                             $this->message($sender, sprintf('Install %s by running /sheep install %s!', $info->getName(), $info->getName()));
                             break;
                         case ResponseType::SUCCESS_MULTIPLE_RESULTS:
-                            $this->message($sender, sprintf('Couldn\'t find plugin %s. You may have meant: %s.', $result['plugin'][0], $response->getData()));
+                            $this->message($sender, sprintf('Couldn\'t find plugin %s. You may have meant: %s.', $result['plugin'][0], $response[0]->getData()));
                     }
                     break;
                 case InitiatorType::PLUGIN_DEP:
             }
         } else {
-            $this->message($sender, sprintf('Successfully installed plugin %s!', $result['response']->getName()));
+            switch($result['initiator']){
+                case InitiatorType::COMMAND_INSTALL:
+                    $this->message($sender, sprintf('Successfully installed plugin %s!', $result['response']->getName()));
+                    break;
+                case InitiatorType::PLUGIN_DEP;
+                    if(!is_array($result['deps']) || $result['deps'] === []){
+                        throw new PluginException('Invalid dependencies provided. Abort.');
+                    }
+                    $this->getServer()->getScheduler()->scheduleAsyncTask(new FetchInfoTask($result['deps'], InitiatorType::PLUGIN_DEP, $this->sourceList->get(0), $result['commandSender']));
+            }
         }
     }
 

@@ -13,6 +13,7 @@ use KnownUnown\Sheep\task\RemovePluginTask;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\Server;
+use pocketmine\utils\TextFormat;
 
 class UninstallCommand extends Command{
 
@@ -21,7 +22,12 @@ class UninstallCommand extends Command{
     }
 
     public function execute(CommandSender $sender, $label, array $args){
-        $sender->sendMessage(sprintf('Removing plugin %s...', $args[0]));
+        $plugin = implode(' ', $args);
+        if(trim($plugin) === '' || $plugin === null){
+            $sender->sendMessage(TextFormat::RED . 'Please input a valid plugin.');
+            return;
+        }
+        $sender->sendMessage(sprintf('Removing plugin %s...', $plugin));
         Server::getInstance()->getScheduler()->scheduleTask(new RemovePluginTask(Server::getInstance()->getPluginManager()->getPlugin('Sheep'), $args[0], $sender->getName()));
     }
 }

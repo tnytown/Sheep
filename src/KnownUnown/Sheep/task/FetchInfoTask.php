@@ -14,7 +14,6 @@ use KnownUnown\Sheep\PluginInfo;
 use KnownUnown\Sheep\Response;
 use KnownUnown\Sheep\ResponseType;
 use pocketmine\scheduler\AsyncTask;
-use pocketmine\utils\PluginException;
 use pocketmine\utils\Utils;
 use pocketmine\Server;
 
@@ -58,7 +57,7 @@ class FetchInfoTask extends AsyncTask{
                 $sdata = json_decode(Utils::getUrl($this->source . "/autocomplete?q=$plugin"), true);
                 if ($sdata === false) $resultarr[] = new Response();
                 $suggestions = "";
-                foreach ($sdata['plugin-suggest'] as $option) {
+                foreach ($sdata['plugin-suggest'][0]['options'] as $option) {
                     $suggestions .= $option['text'] . ", ";
                 }
                 $suggestions = rtrim($suggestions, ', ');

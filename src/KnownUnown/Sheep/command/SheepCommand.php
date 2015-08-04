@@ -22,7 +22,7 @@ class SheepCommand extends Command{
     public function __construct(Sheep $plugin, SheepCommandMap $commandMap){
         $this->plugin = $plugin;
         $this->commandMap = $commandMap;
-        parent::__construct("sheep", "Base command for the Sheep plugin", "/sheep <install|uninstall|update|upgrade|about>");
+        parent::__construct("sheep", "Base command for the Sheep plugin", "/sheep <install|uninstall|info|about>");
     }
 
     public function execute(CommandSender $sender, $command, array $args){
