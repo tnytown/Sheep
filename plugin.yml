@@ -1,10 +1,10 @@
 name: Sheep
 main: KnownUnown\Sheep\Sheep
-version: 4.0.3
-api: 1.0.0
+version: 5.0.0
+api: 2.0.0
 
 author: KnownUnown
-description: A plugin for managing (installing, uninstalling, searching for, etc) other plugins.
+description: A plugin for [installing, uninstalling, viewing] other plugins.
 website: https://www.github.com/KnownUnown/Sheep
 
 permissions:

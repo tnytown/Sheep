@@ -1,0 +1,19 @@
+language: php
+
+php:
+  - 7.0
+
+branches:
+  - master
+
+install:
+  - mkdir plugins
+  - wget -O plugins/DevTools.phar https://github.com/PocketMine/DevTools/releases/download/v1.11.0/DevTools_v1.11.0.phar
+  - wget -O PocketMine-MP.phar https://dl.bintray.com/pocketmine/PocketMine/:PocketMine-MP_1.6dev-27_ef8227a0_API-2.0.0.phar
+  - pecl install channel://pecl.php.net/pthreads-3.1.6
+  - pecl install channel://pecl.php.net/weakref-0.3.2
+  - echo | pecl install channel://pecl.php.net/yaml-2.0.0RC7
+before_script:
+  - php -dphar.readonly=0 plugins/DevTools.phar --make $TRAVIS_BUILD_DIR --out plugins/Sheep.phar
+script:
+  - php PocketMine-MP.phar --no-wizard
