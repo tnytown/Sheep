@@ -18,6 +18,7 @@ class Sheep extends PluginBase {
 		$this->registerSources();
 
 		$this->getServer()->getCommandMap()->register("sheep", new SheepCommand($this));
+		$this->getLogger()->info("Sheep enabled!");
 	}
 
 	public function registerSources() {
