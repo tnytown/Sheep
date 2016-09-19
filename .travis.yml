@@ -7,6 +7,7 @@ branches:
   - master
 
 install:
+  cd ..
   - mkdir plugins
   - wget -O plugins/PluginChecker.php https://gist.githubusercontent.com/KnownUnown/982bbbef98e86ddfc5b5aac570195024/raw/d82e74bb5ff5264133230f8c724e1c4d573174a6/PluginChecker.php
   - wget -O plugins/DevTools.phar https://github.com/PocketMine/DevTools/releases/download/v1.11.0/DevTools_v1.11.0.phar
@@ -14,7 +15,9 @@ install:
   - pecl install channel://pecl.php.net/pthreads-3.1.6
   - pecl install channel://pecl.php.net/weakref-0.3.2
   - echo | pecl install channel://pecl.php.net/yaml-2.0.0RC7
+
 before_script:
-  - php -dphar.readonly=0 plugins/DevTools.phar --make $TRAVIS_BUILD_DIR --out plugins/Sheep.phar
+  - php -dphar.readonly=0 plugins/DevTools.phar --make $TRAVIS_BUILD_DIR --out ../plugins/Sheep.phar
+
 script:
-  - php PocketMine-MP.phar --no-wizard --pluginchecker.target=Sheep
+  - php PocketMine-MP.phar --no-wizard --disable-readline --pluginchecker.target=Sheep
