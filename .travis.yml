@@ -10,7 +10,7 @@ install:
   - mkdir plugins
   - wget -O plugins/PluginChecker.php https://gist.githubusercontent.com/KnownUnown/982bbbef98e86ddfc5b5aac570195024/raw/d82e74bb5ff5264133230f8c724e1c4d573174a6/PluginChecker.php
   - wget -O plugins/DevTools.phar https://github.com/PocketMine/DevTools/releases/download/v1.11.0/DevTools_v1.11.0.phar
-  - wget -O PocketMine-MP.phar https://dl.bintray.com/pocketmine/PocketMine/:PocketMine-MP_1.6dev-27_ef8227a0_API-2.0.0.phar
+  - wget -O PocketMine-MP.phar https://dl.bintray.com/pocketmine/PocketMine/PocketMine-MP_1.6dev-27_ef8227a0_API-2.0.0.phar
   - pecl install channel://pecl.php.net/pthreads-3.1.6
   - pecl install channel://pecl.php.net/weakref-0.3.2
   - echo | pecl install channel://pecl.php.net/yaml-2.0.0RC7
