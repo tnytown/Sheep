@@ -7,7 +7,7 @@ branches:
   - master
 
 install:
-  cd ..
+  - cd ..
   - mkdir plugins
   - wget -O plugins/PluginChecker.php https://gist.githubusercontent.com/KnownUnown/982bbbef98e86ddfc5b5aac570195024/raw/d82e74bb5ff5264133230f8c724e1c4d573174a6/PluginChecker.php
   - wget -O plugins/DevTools.phar https://github.com/PocketMine/DevTools/releases/download/v1.11.0/DevTools_v1.11.0.phar
