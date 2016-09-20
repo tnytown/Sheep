@@ -19,6 +19,7 @@ class Sheep extends PluginBase {
 
 		$this->getServer()->getCommandMap()->register("sheep", new SheepCommand($this));
 		$this->getLogger()->info("Sheep enabled!");
+
 	}
 
 	public function registerSources() {
@@ -33,11 +34,6 @@ class Sheep extends PluginBase {
 		}
 		return $this->sources[$name];
 	}
-
-	public function callbackRouter(callable $callback, ...$args) {
-		call_user_func_array($callback, $args);
-	}
-
 	public function onDisable() {
 	}
 }
