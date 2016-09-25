@@ -18,7 +18,7 @@ class FileGetTask extends AsyncCallbackTask {
 	}
 
 	public function onRun() {
-		$this->setResult(file_get_contents($this->file));
+		$this->setResult(@file_get_contents($this->file));
 	}
 
 	public function onCompletion(Server $server) {

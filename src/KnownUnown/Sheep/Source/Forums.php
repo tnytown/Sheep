@@ -18,33 +18,47 @@ class Forums implements Source {
 
 	public function search(string $plugin, callable $callback) {
 		Server::getInstance()->getScheduler()->scheduleAsyncTask(
-			$task = new FileGetTask(Forums::SEARCH_ENDPOINT . "/search?q=" . $plugin, $closure = function($taskId, $result) {
+			$task = new FileGetTask(Forums::SEARCH_ENDPOINT . "/search?q=" . $plugin, function($taskId, $result) {
+				$plugins = false;
 				if($result && isset($this->callbacks[$taskId])) {
 					$plugins = array_map(function(array $value) {
 						$data = $value["_source"];
 
-						if($data["prefix_id"] !== 7) { // Not an outdated plugin :)
-							$plugin = new Plugin($this);
-							$plugin->uri = "https://forums.pocketmine.net/plugins/" .
-								$data["resource_id"] . "/download?version=" . $data["current_version_id"];
+						$plugin = new Plugin($this);
+						$plugin->uri = "https://forums.pocketmine.net/plugins/" .
+							$data["resource_id"] . "/download?version=" . $data["current_version_id"];
 
-							$plugin->data_title = $data["title"];
-							$plugin->data_author = $data["username"];
-							$plugin->data_rating = round($data["rating_avg"], 2);
-							$plugin->data_description = $data["tag_line"];
-							$plugin->data_version_id = $data["current_version_id"];
+						$plugin->data_title = $data["title"];
+						$plugin->data_author = $data["username"];
+						$plugin->data_rating = round($data["rating_avg"], 2);
+						$plugin->data_description = $data["tag_line"];
+						$plugin->data_version_id = $data["current_version_id"];
+						$plugin->data_outdated = ($data["prefix_id"] === 7);
+						$plugin->data_ttl = time() + (5 * 60 * 60); // 5 minutes
 
-							return $plugin;
-						}
+						return $plugin;
 
-						return false;
 					}, json_decode($result, true)["hits"]["hits"]);
-					call_user_func_array($this->callbacks[$taskId], $plugins);
-					unset($this->callbacks[$taskId]);
 				}
+				call_user_func_array($this->callbacks[$taskId], $plugins ? $plugins : [false]);
+				unset($this->callbacks[$taskId]);
 			})
 		);
-		$refl = new \ReflectionFunction($closure);
 		$this->callbacks[$task->getTaskId()] = $callback;
+	}
+
+	public function resolve(string $plugin, callable $callback, $exact = true) {
+		$this->search($plugin, function(...$plugins) use ($plugin, $callback) {
+			$result = false;
+			foreach($plugins as $p) {
+				if($p->data_outdated) continue;
+
+				if(strtolower($p->data_title) === strtolower($plugin)) {
+					$result = $p;
+					break;
+				}
+			}
+			call_user_func($callback, $result);
+		});
 	}
 }

@@ -21,7 +21,7 @@ class FileWriteTask extends AsyncCallbackTask {
 
 	public function onRun(){
 		try{
-			file_put_contents($this->path, $this->contents);
+			@file_put_contents($this->path, $this->contents);
 		}catch (\Throwable $e){}
 		$this->setResult($this->path);
 	}
