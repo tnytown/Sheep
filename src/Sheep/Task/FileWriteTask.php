@@ -1,7 +1,7 @@
 <?php
 
 
-namespace KnownUnown\Sheep\Task;
+namespace Sheep\Task;
 
 
 use pocketmine\Server;
@@ -20,9 +20,9 @@ class FileWriteTask extends AsyncCallbackTask {
 	}
 
 	public function onRun(){
-		try{
+		try {
 			@file_put_contents($this->path, $this->contents);
-		}catch (\Throwable $e){}
+		} catch (\Throwable $e) {}
 		$this->setResult($this->path);
 	}
 

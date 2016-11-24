@@ -1,14 +1,11 @@
 <?php
 
+namespace Sheep\Source;
 
-namespace KnownUnown\Sheep\Source;
+use Sheep\Plugin;
+use Sheep\Task\FileGetTask;
 
-
-use KnownUnown\Sheep\Plugin;
-use KnownUnown\Sheep\Task\FileGetTask;
-use pocketmine\Server;
-
-class Forums implements Source {
+class Forums extends BaseSource {
 
 	/** @var callable[] */
 	public $callbacks = [];
@@ -16,10 +13,10 @@ class Forums implements Source {
 	const SEARCH_ENDPOINT = "https://pluginsearch.pocketdock.io";
 	const FORUMS_ENDPOINT = "https://forums.pocketmine.net/api.php";
 
-	public function search(string $plugin, callable $callback) {
-		Server::getInstance()->getScheduler()->scheduleAsyncTask(
+	public function search(string $plugin, callable $callback, bool $exact = false) {
+		$this->plugin->getServer()->getScheduler()->scheduleAsyncTask(
 			$task = new FileGetTask(Forums::SEARCH_ENDPOINT . "/search?q=" . $plugin, function($taskId, $result) {
-				$plugins = false;
+				$plugins = null;
 				if($result && isset($this->callbacks[$taskId])) {
 					$plugins = array_map(function(array $value) {
 						$data = $value["_source"];
@@ -36,29 +33,19 @@ class Forums implements Source {
 						$plugin->data_outdated = ($data["prefix_id"] === 7);
 						$plugin->data_ttl = time() + (5 * 60 * 60); // 5 minutes
 
-						return $plugin;
+						$this->plugin->getCache()->set($plugin->data_title, $plugin);
 
+						return $plugin;
 					}, json_decode($result, true)["hits"]["hits"]);
 				}
-				call_user_func_array($this->callbacks[$taskId], $plugins ? $plugins : [false]);
+				call_user_func_array($this->callbacks[$taskId], $plugins ? $plugins : []);
 				unset($this->callbacks[$taskId]);
 			})
 		);
 		$this->callbacks[$task->getTaskId()] = $callback;
 	}
 
-	public function resolve(string $plugin, callable $callback, $exact = true) {
-		$this->search($plugin, function(...$plugins) use ($plugin, $callback) {
-			$result = false;
-			foreach($plugins as $p) {
-				if($p->data_outdated) continue;
-
-				if(strtolower($p->data_title) === strtolower($plugin)) {
-					$result = $p;
-					break;
-				}
-			}
-			call_user_func($callback, $result);
-		});
+	public function regex() : string {
+		return "forums.pocketmine.net\\/plugins\\/[\\w-]+\\.(\\d+)"; // group 1: plugin ID
 	}
 }

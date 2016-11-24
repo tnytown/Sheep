@@ -1,7 +1,7 @@
 <?php
 
 
-namespace KnownUnown\Sheep\Task;
+namespace Sheep\Task;
 
 
 use pocketmine\Server;

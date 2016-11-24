@@ -1,5 +1,5 @@
 name: Sheep
-main: KnownUnown\Sheep\Sheep
+main: Sheep\Sheep
 version: 5.0.0
 api: 2.0.0
 

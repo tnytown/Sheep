@@ -1,12 +1,13 @@
 <?php
 
 
-namespace KnownUnown\Sheep;
+namespace Sheep;
 
 
-use KnownUnown\Sheep\Source\Source;
-use KnownUnown\Sheep\Task\FileGetTask;
-use KnownUnown\Sheep\Task\FileWriteTask;
+use pocketmine\plugin\PluginDescription;
+use Sheep\Source\Source;
+use Sheep\Task\FileGetTask;
+use Sheep\Task\FileWriteTask;
 use pocketmine\Server;
 
 class Plugin implements \JsonSerializable {
@@ -19,6 +20,8 @@ class Plugin implements \JsonSerializable {
 	private $authors;
 	/** @var int */
 	private $version;
+
+	private $installed = false;
 
 	private $metadata = [];
 
@@ -45,30 +48,25 @@ class Plugin implements \JsonSerializable {
 		return $this->version;
 	}
 
+	/**
+	 * @return bool
+	 */
+	public function isInstalled() {
+		return $this->installed;
+	}
+
 	public function __construct(Source $source) {
 		$this->source = $source;
 	}
 
 	public function install(callable $callback) {
-		if(isset($this->uri)) {
-			$name = md5($this->uri);
+		$this->source->install($this, $callback);
+	}
 
-			Server::getInstance()->getScheduler()->scheduleAsyncTask(
-				$read = new FileGetTask($this->uri, function($taskId, $result) use ($callback, $name) {
-					if($result) {
-						Server::getInstance()->getScheduler()->scheduleAsyncTask(
-							$write = new FileWriteTask(\pocketmine\PLUGIN_PATH . DIRECTORY_SEPARATOR . $name, $result, function($taskId, $path) {
-								$plugin = Server::getInstance()->getPluginManager()->loadPlugin($path)->getDescription();
-
-								$this->name = $plugin->getName();
-								$this->authors = $plugin->getAuthors();
-								$this->version = $plugin->getVersion();
-							})
-						);
-					}
-				}, $this)
-			);
-		}
+	public function loadDescription(PluginDescription $desc) {
+		$this->name = $desc->getName();
+		$this->authors = $desc->getAuthors();
+		$this->version = $desc->getVersion();
 	}
 
 	public function __get($name) {
@@ -89,6 +87,7 @@ class Plugin implements \JsonSerializable {
 			"name" => $this->name,
 			"author" => $this->authors,
 			"version" => $this->version,
+			"installed" => $this->installed,
 		];
 	}
 }
