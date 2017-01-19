@@ -11,12 +11,28 @@ interface Source {
 	/**
 	 * Searches for a plugin.
 	 *
+	 * The signature of the callback:
+	 * function(Sheep\Plugin[])
+	 *
 	 * @param string $plugin The name of the plugin.
 	 * @param callable $callback The callback for receiving data.
-	 * @param bool $exact Whether to return only exact matches from the repository.
 	 * @return mixed
 	 */
-	public function search(string $plugin, callable $callback, bool $exact = false);
+	public function search(string $plugin, callable $callback);
+
+	/**
+	 * Resolves a plugin from identifying data of the source's choosing.
+	 * Data from the regular expression returned by regex() is fed to here,
+	 * so regex wisely.
+	 *
+	 * The signature of the callback:
+	 * function(Sheep\Plugin[])
+	 *
+	 * @param array $data
+	 * @param callable $callback
+	 * @return mixed
+	 */
+	public function resolve(array $data, callable $callback);
 
 	/**
 	 * Installs a given Plugin. Implement this function to gain custom

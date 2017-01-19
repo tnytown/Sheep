@@ -6,6 +6,7 @@ namespace Sheep\Source;
 
 use Sheep\Exception\InvalidPluginException;
 use Sheep\Exception\PluginAlreadyInstalledException;
+use Sheep\Exception\PluginException;
 use Sheep\Plugin;
 use Sheep\Sheep;
 use Sheep\Task\FileGetTask;
@@ -20,11 +21,11 @@ abstract class BaseSource implements Source {
 
 	public function install(Plugin $plugin, callable $callback) {
 		if(!isset($plugin->uri)) {
-			throw new InvalidPluginException("Invalid Plugin URI");
+			throw new PluginException("Invalid Plugin URI.");
 		}
 
 		if($plugin->isInstalled()) {
-			throw new PluginAlreadyInstalledException;
+			throw new PluginException("The plugin is already installed.");
 		}
 
 		$scheduler = $this->plugin->getServer()->getScheduler();
@@ -41,6 +42,7 @@ abstract class BaseSource implements Source {
 							})
 					);
 				}
+
 			}, $this)
 		);
 	}

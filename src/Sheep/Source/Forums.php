@@ -2,28 +2,28 @@
 
 namespace Sheep\Source;
 
+use Sheep\Exception\SheepException;
 use Sheep\Plugin;
 use Sheep\Task\FileGetTask;
 
+/**
+ * PocketMine Forums (forums.pocketmine.net) source.
+ * Don't look at this, it might and will harm your eyes.
+ */
 class Forums extends BaseSource {
-
-	/** @var callable[] */
-	public $callbacks = [];
 
 	const SEARCH_ENDPOINT = "https://pluginsearch.pocketdock.io";
 	const FORUMS_ENDPOINT = "https://forums.pocketmine.net/api.php";
 
-	public function search(string $plugin, callable $callback, bool $exact = false) {
+	public function search(string $plugin, callable $callback) {
 		$this->plugin->getServer()->getScheduler()->scheduleAsyncTask(
-			$task = new FileGetTask(Forums::SEARCH_ENDPOINT . "/search?q=" . $plugin, function($taskId, $result) {
+			$task = new FileGetTask(Forums::SEARCH_ENDPOINT . "/search?q=$plugin", function($taskId, $result) use ($callback) {
 				$plugins = null;
-				if($result && isset($this->callbacks[$taskId])) {
+				if($result) {
 					$plugins = array_map(function(array $value) {
 						$data = $value["_source"];
 
 						$plugin = new Plugin($this);
-						$plugin->uri = "https://forums.pocketmine.net/plugins/" .
-							$data["resource_id"] . "/download?version=" . $data["current_version_id"];
 
 						$plugin->data_title = $data["title"];
 						$plugin->data_author = $data["username"];
@@ -38,11 +38,22 @@ class Forums extends BaseSource {
 						return $plugin;
 					}, json_decode($result, true)["hits"]["hits"]);
 				}
-				call_user_func_array($this->callbacks[$taskId], $plugins ? $plugins : []);
-				unset($this->callbacks[$taskId]);
+				call_user_func_array($callback, $plugins);
 			})
 		);
-		$this->callbacks[$task->getTaskId()] = $callback;
+	}
+
+	public function resolve(array $data, callable $callback) {
+		if(!isset($data[1])) throw new SheepException("Invalid data passed to Forums::resolve!");
+		$this->plugin->getServer()->getScheduler()->scheduleAsyncTask(
+			$task = new FileGetTask(Forums::FORUMS_ENDPOINT . "?action=getResource&value=$data[1]", function($taskId, $result) {
+				$plugin = new Plugin($this);
+			})
+		);
+	}
+
+	private function generateUri($id, $version) {
+		return "https://forums.pocketmine.net/plugins/$id/download?version=$version";
 	}
 
 	public function regex() : string {

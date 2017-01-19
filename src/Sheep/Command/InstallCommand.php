@@ -13,6 +13,7 @@ class InstallCommand extends SheepCommand {
 	}
 
 	public function execute(CommandSender $sender, $commandLabel, array $args) {
+		$source = $this->plugin->getSourceManager()->find($args[0]);
 
 	}
 }

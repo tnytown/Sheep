@@ -10,12 +10,17 @@ use Sheep\Sheep;
 class SearchCommand extends SheepCommand {
 
 	public function __construct(Sheep $plugin) {
-		parent::__construct($plugin, "search", "Searches for a plugin.", "search <name> [source]");
+		parent::__construct($plugin, "search", "Searches for a plugin.", "search <name>[@source]");
 	}
 
 	public function execute(CommandSender $sender, $commandLabel, array $args) {
-		$this->plugin->search($args[0], function(){
+		if(!isset($args[0])) {
+			return false;
+		}
 
-		}, isset($args[1]) ? $args[1] : "Forums");
+		$info = explode($args[0], "@");
+		$this->plugin->search($info[0], function() {
+
+		}, isset($info[1]) ? $info[1] : $this->plugin->getSourceManager()->getFallbackSource());
 	}
 }

@@ -24,8 +24,7 @@ class Plugin implements \JsonSerializable {
 	private $installed = false;
 
 	private $metadata = [];
-
-	public $uri;
+	private $uri;
 
 	/**
 	 * @return string
@@ -55,18 +54,22 @@ class Plugin implements \JsonSerializable {
 		return $this->installed;
 	}
 
-	public function __construct(Source $source) {
-		$this->source = $source;
+	public function getUri() {
+		return $this->uri;
 	}
 
-	public function install(callable $callback) {
-		$this->source->install($this, $callback);
+	public function __construct(Source $source) {
+		$this->source = $source;
 	}
 
 	public function loadDescription(PluginDescription $desc) {
 		$this->name = $desc->getName();
 		$this->authors = $desc->getAuthors();
 		$this->version = $desc->getVersion();
+	}
+
+	public function install(callable $callback) {
+		$this->source->install($this, $callback);
 	}
 
 	public function __get($name) {
