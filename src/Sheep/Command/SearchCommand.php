@@ -13,7 +13,7 @@ class SearchCommand extends SheepCommand {
 		parent::__construct($plugin, "search", "Searches for a plugin.", "search <name>[@source]");
 	}
 
-	public function execute(CommandSender $sender, $commandLabel, array $args) {
+	public function run(CommandSender $sender, $commandLabel, array $args) {
 		if(!isset($args[0])) {
 			return false;
 		}
@@ -21,6 +21,6 @@ class SearchCommand extends SheepCommand {
 		$info = explode($args[0], "@");
 		$this->plugin->search($info[0], function() {
 
-		}, isset($info[1]) ? $info[1] : $this->plugin->getSourceManager()->getFallbackSource());
+		}, isset($info[1]) ? $info[1] : $this->plugin->getSourceManager()->getDefaultSource());
 	}
 }

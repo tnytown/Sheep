@@ -11,28 +11,20 @@ interface Source {
 	/**
 	 * Searches for a plugin.
 	 *
-	 * The signature of the callback:
-	 * function(Sheep\Plugin[])
-	 *
-	 * @param string $plugin The name of the plugin.
+	 * @param string $query The name of the plugin.
 	 * @param callable $callback The callback for receiving data.
-	 * @return mixed
 	 */
-	public function search(string $plugin, callable $callback);
+	public function search(string $query, callable $callback);
 
 	/**
-	 * Resolves a plugin from identifying data of the source's choosing.
-	 * Data from the regular expression returned by regex() is fed to here,
-	 * so regex wisely.
+	 * Resolves a plugin exactly.
 	 *
-	 * The signature of the callback:
-	 * function(Sheep\Plugin[])
-	 *
-	 * @param array $data
+	 * @param string $plugin
 	 * @param callable $callback
+	 * @param string $version
 	 * @return mixed
 	 */
-	public function resolve(array $data, callable $callback);
+	public function resolve(string $plugin, string $version, callable $callback);
 
 	/**
 	 * Installs a given Plugin. Implement this function to gain custom
@@ -41,7 +33,6 @@ interface Source {
 	 *
 	 * @param Plugin $plugin The plugin in question.
 	 * @param callable $callback The callback after the operation completes.
-	 * @return mixed
 	 */
 	public function install(Plugin $plugin, callable $callback);
 
@@ -51,15 +42,7 @@ interface Source {
 	 *
 	 * @param Plugin $plugin The plugin in question.
 	 * @param callable $callback The callback after the operation completes.
-	 * @return mixed
 	 */
 	public function update(Plugin $plugin, callable $callback);
-
-	/**
-	 * Returns a RegEx for matching search / install queries to repositories.
-	 *
-	 * @return string
-	 */
-	public function regex() : string;
 
 }

@@ -16,7 +16,7 @@ class FileWriteTask extends AsyncCallbackTask {
 		$this->path = $path;
 		$this->contents = $contents;
 
-		$this->setCallback($callback);
+		parent::__construct($callback);
 	}
 
 	public function onRun(){
@@ -27,6 +27,7 @@ class FileWriteTask extends AsyncCallbackTask {
 	}
 
 	public function onCompletion(Server $server) {
-		$this->callback($this->getTaskId(), $this->getResult());
+		/** @var callable $callback */
+		$this->callback($this->getResult());
 	}
 }

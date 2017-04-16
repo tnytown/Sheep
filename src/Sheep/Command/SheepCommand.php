@@ -6,6 +6,7 @@ namespace Sheep\Command;
 
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\event\TranslationContainer;
 use Sheep\Sheep;
 
 class SheepCommand extends Command {
@@ -17,6 +18,6 @@ class SheepCommand extends Command {
 	}
 
 	public function execute(CommandSender $sender, $commandLabel, array $args) {
-		$sender->sendMessage("Sheep version {$this->plugin->getDescription()->getVersion()} (Git commit {$this->plugin->getGitRevision()})");
+		$sender->sendMessage("Sheep version {$this->plugin->getDescription()->getVersion()} (Git commit " . \Sheep\GIT_REVISION . ")");
 	}
 }

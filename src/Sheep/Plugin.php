@@ -6,87 +6,63 @@ namespace Sheep;
 
 use pocketmine\plugin\PluginDescription;
 use Sheep\Source\Source;
-use Sheep\Task\FileGetTask;
+use Sheep\Task\CurlTask;
 use Sheep\Task\FileWriteTask;
 use pocketmine\Server;
 
-class Plugin implements \JsonSerializable {
+abstract class Plugin implements \JsonSerializable {
+	protected $source;
+	protected $name;
+	protected $authors;
+	protected $version;
 
-	/** @var Source */
-	private $source;
-	/** @var string */
-	private $name;
-	/** @var string */
-	private $authors;
-	/** @var int */
-	private $version;
+	protected $dependencies;
+	protected $installed = false;
 
-	private $installed = false;
-
-	private $metadata = [];
-	private $uri;
+	protected $uri;
 
 	/**
+	 * Returns human-readable, formatted info on the plugin.
 	 * @return string
 	 */
-	public function getName() {
+	public function __toString() : string {
+		return "@$this->source/$this->name:$this->version";
+	}
+
+	public function getName() : string {
 		return $this->name;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getAuthor() {
+	public function getAuthors() : array {
 		return $this->authors;
 	}
 
-	/**
-	 * @return int
-	 */
-	public function getVersion() {
+	public function getVersion() : string {
 		return $this->version;
+	}
+
+	public function getDependencies() : array {
+		return $this->dependencies;
 	}
 
 	/**
 	 * @return bool
 	 */
-	public function isInstalled() {
+	public function isInstalled() : bool {
 		return $this->installed;
 	}
 
-	public function getUri() {
+	public function getUri() : string {
 		return $this->uri;
 	}
 
-	public function __construct(Source $source) {
+	public function __construct(string $source) {
 		$this->source = $source;
-	}
-
-	public function loadDescription(PluginDescription $desc) {
-		$this->name = $desc->getName();
-		$this->authors = $desc->getAuthors();
-		$this->version = $desc->getVersion();
-	}
-
-	public function install(callable $callback) {
-		$this->source->install($this, $callback);
-	}
-
-	public function __get($name) {
-		if(!isset($this->metadata[$name])) {
-			return null;
-		}
-		return $this->metadata[$name];
-	}
-
-	public function __set($name, $value) {
-		$this->metadata[$name] = $value;
 	}
 
 	public function jsonSerialize() {
 		return [
-			"source" => get_class($this->source),
-			"data" => $this->metadata,
+			"source" => $this->source,
 			"name" => $this->name,
 			"author" => $this->authors,
 			"version" => $this->version,

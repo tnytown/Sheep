@@ -5,6 +5,7 @@ namespace Sheep;
 
 
 use Sheep\Command\InstallCommand;
+use Sheep\Command\SearchCommand;
 use Sheep\Command\SheepCommand;
 use Sheep\Source\Source;
 use pocketmine\plugin\PluginBase;
@@ -19,7 +20,9 @@ class Sheep extends PluginBase {
 	private $sourceManager;
 
 	public function onEnable() {
+		define("Sheep\\GIT_REVISION", $this->getGitRevision());
 		$this->sourceManager = new SourceManager($this);
+		$this->sourceManager->registerDefaults();
 
 		@mkdir($this->getDataFolder());
 		$this->cache = new Config($this->getDataFolder() . "cache.json", Config::JSON, []);
@@ -27,7 +30,8 @@ class Sheep extends PluginBase {
 		$this->getServer()->getCommandMap()->registerAll(
 			"s", [
 				new SheepCommand($this),
-				new InstallCommand($this)
+				new InstallCommand($this),
+				new SearchCommand($this)
 			]
 		);
 	}
@@ -45,10 +49,10 @@ class Sheep extends PluginBase {
 	}
 
 	public function getGitRevision() {
-		$ref = @file_get_contents($this->getFile() . ".git/HEAD");
+		$ref = @file_get_contents($this->getFile() . DIRECTORY_SEPARATOR . ".git/HEAD");
 		if(!$ref) return "unknown";
-		$rev = @file_get_contents($this->getFile() . ".git/" . substr($ref, 4));
-		return $rev ? $rev : "unknown";
+		$rev = trim(@file_get_contents($this->getFile() . ".git/" . trim(explode(" ", $ref)[1])));
+		return $rev ?: "unknown";
 	}
 
 	public function getCache() {
