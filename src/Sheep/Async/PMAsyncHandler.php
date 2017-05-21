@@ -9,6 +9,7 @@ use pocketmine\scheduler\ServerScheduler;
 use React\Promise\Deferred;
 use React\Promise\Promise;
 use Sheep\Async\Task\CurlTask;
+use Sheep\Async\Task\WriteTask;
 
 class PMAsyncHandler implements AsyncHandler {
 	private $scheduler;
@@ -37,6 +38,18 @@ class PMAsyncHandler implements AsyncHandler {
 	}
 
 	public function write(string $file, string $data): Promise {
-		// TODO: Implement write() method.
+		$deferred = new Deferred();
+
+		$this->scheduler->scheduleAsyncTask(new WriteTask($file, $data,
+			function(bool $error) use (&$deferred) {
+				var_dump($error);
+				if(!$error) {
+					$deferred->reject($error);
+				} else {
+					$deferred->resolve();
+				}
+			}));
+
+		return $deferred->promise();
 	}
 }

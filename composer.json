@@ -9,8 +9,7 @@
         }
     ],
     "require": {
-        "react/promise": "^2.5",
-        "corneltek/getoptionkit": "^2.5"
+        "react/promise": "^2.5"
     },
     "autoload": {
         "psr-0": {

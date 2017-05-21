@@ -71,4 +71,11 @@ class Sheep {
 		}
 		return self::$instance;
 	}
+
+	/**
+	 * @return SourceManager
+	 */
+	public function getSourceManager(): SourceManager {
+		return $this->sourceManager;
+	}
 }

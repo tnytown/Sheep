@@ -1,7 +1,7 @@
-name: SheepPlugin
-main: SheepPlugin\SheepPlugin
+name: Sheep
+main: Sheep\SheepPlugin
 version: 5.0.0-alpha
-api: [3.0.0-ALPHA4]
+api: [3.0.0-ALPHA4, 3.0.0-ALPHA5]
 
 author: KnownUnown
 description: A plugin for [installing, uninstalling, viewing] other plugins.

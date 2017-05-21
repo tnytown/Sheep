@@ -5,39 +5,40 @@ declare(strict_types = 1);
 namespace Sheep;
 
 
-use Sheep\Command\InstallCommand;
-use Sheep\Command\SearchCommand;
-use Sheep\Command\SheepCommand;
-use Sheep\Source\Source;
+use Sheep\Async\PMAsyncHandler;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
+use Sheep\Command\CommandManager;
+use Sheep\Command\PMCommandProxy;
 use Sheep\Source\SourceManager;
 
 class SheepPlugin extends PluginBase {
-
+	/** @var Sheep */
+	private $api;
 	/** @var Config */
 	private $cache;
 	/** @var SourceManager */
 	private $sourceManager;
+	/** @var CommandManager */
+	private $commandManager;
 
-	/**
-	 *
-	 */
 	public function onEnable() {
-		define("Sheep\\GIT_REVISION", $this->getGitRevision());
-		$this->sourceManager = new SourceManager($this);
-		$this->sourceManager->registerDefaults();
+		require "../../vendor/autoload.php";
+		define("Sheep\\PLUGIN_PATH", constant("pocketmine\\PLUGIN_PATH"));
 
-		@mkdir($this->getDataFolder());
-		$this->cache = new Config($this->getDataFolder() . "cache.json", Config::JSON, []);
-	}
+		$asyncHandler = new PMAsyncHandler($this->getServer()->getScheduler());
+		$this->api = Sheep::getInstance();
+		$this->api->init($asyncHandler);
+		$this->sourceManager = $this->api->getSourceManager();
+		$this->commandManager = new CommandManager();
 
-	public function install(Source $source, string $identifier, callable $callback) {
+		foreach($this->commandManager->getAll() as $command) {
+			$this->getServer()->getCommandMap()->register("sheep", new PMCommandProxy($command));
+		}
 
-	}
-
-	public function search(string $query, callable $callback, string $source = "Forums") {
-		$this->getSourceManager()->get($source)->search($query, $callback);
+		//define("Sheep\\GIT_REVISION", $this->getGitRevision());
+		//@mkdir($this->getDataFolder());
+		//$this->cache = new Config($this->getDataFolder() . "cache.json", Config::JSON, []);
 	}
 
 	public function getSourceManager() {
@@ -56,6 +57,6 @@ class SheepPlugin extends PluginBase {
 	}
 
 	public function onDisable() {
-		$this->getCache()->save();
+		//$this->getCache()->save();
 	}
 }
