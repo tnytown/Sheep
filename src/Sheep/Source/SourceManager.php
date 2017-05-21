@@ -1,19 +1,21 @@
 <?php
+declare(strict_types = 1);
 
 
 namespace Sheep\Source;
 
 
-use Sheep\Sheep;
+use Sheep\Async\AsyncHandler;
 
 class SourceManager {
-	private $plugin;
+	private $asyncHandler;
 	/** @var Source[] */
 	private $sources;
 
-	public function __construct(Sheep $plugin) {
-		$this->plugin = $plugin;
+	public function __construct(AsyncHandler $asyncHandler) {
+		$this->asyncHandler = $asyncHandler;
 		$this->sources = [];
+		$this->registerDefaults();
 	}
 
 	public function get(string $name) {
@@ -29,7 +31,7 @@ class SourceManager {
 	}
 
 	public function registerDefaults() {
-		$this->register("Poggit", new Poggit($this->plugin->getServer()->getPluginManager()));
+		$this->register("Poggit", new Poggit($this->asyncHandler));
 	}
 
 	public function getDefaultSource() {

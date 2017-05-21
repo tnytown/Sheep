@@ -1,86 +1,90 @@
 <?php
+declare(strict_types = 1);
 
 
 namespace Sheep\Source;
 
 
-use pocketmine\plugin\PluginManager;
+use React\Promise\Deferred;
+use React\Promise\Promise;
+use Sheep\Async\AsyncHandler;
 use Sheep\Plugin;
-use Sheep\Utils\Utils;
 use Sheep\Utils\Error;
 
 abstract class BaseSource implements Source {
-	protected $pluginManager;
+	protected $asyncHandler;
 
-	public function __construct(PluginManager $pluginManager) {
-		$this->pluginManager = $pluginManager;
+	public function __construct(AsyncHandler $asyncHandler) {
+		$this->asyncHandler = $asyncHandler;
 	}
 
-	public function install(Plugin $plugin, callable $callback, array $args = []) {
-		if($plugin->getUri() === null) { // TODO: more robust URI checking
-			$callback(new Error("Plugin URI is invalid.", Error::E_PLUGIN_URI_INVALID));
-		}
+	public function install(Plugin... $plugin) : Promise {
+		$deferred = new Deferred();
 
-		if($plugin->isInstalled()) {
-			$callback(new Error("Plugin {$plugin->getName()} is already installed.",
-				Error::E_PLUGIN_ALREADY_INSTALLED));
-		}
+		$target = array_shift($plugin);
+		$depends = $target->getDependencies();
 
-		// I am deeply sorry for the crimes I have committed against
-		// closures (and humanity) and I promise to never do this again.
+		// resolve all dependencies
+		$resolver = function(array $dependencies, array &$resolved = []) use (&$resolver) : Promise {
+			$deferred = new Deferred();
 
-		// Basic structure:
-		// install(plugin, callback_1, args)
-		// 	-> installDeps(deps_1, install_plugin)
-		//		-> install(dep_1, callback(installDeps with deps_1, callback_1)
-		//		-> ...
-		//		-> install(dep_n, callback(installDeps with deps_1, callback_1)
-		//		(deps_1 > 0) === false)
-		//			-> install_plugin(null)
-		//				-> download_and_install_plugin($plugin)
-		//				-> callback_1(args)
-
-		$deps = $plugin->getDependencies();
-		$this->installDependencies($deps, function(Error $error = null) use ($plugin, $callback, $args) {
-			if(!$error) {
-				Utils::curlGet($plugin->getUri(), function(string $result) use ($plugin, $callback, $args) {
-					if($result) {
-						Utils::writeFile(\pocketmine\PLUGIN_PATH . DIRECTORY_SEPARATOR . $plugin->getName() . ".phar", $result,
-							function($path) use ($plugin, $callback, $args) {
-								$this->pluginManager->loadPlugin($path);
-								$callback(...$args);
-							}
-						);
-					}
-				}
-				);
-			} else {
-				$callback($error);
+			if(count($dependencies) === 0) {
+				$deferred->resolve($resolved); // punt result up the stack if we haven't exceeded the limit by now :p
+				goto end;
 			}
-		});
-	}
 
-	private function installDependencies(array &$deps, callable $callback) {
-		if(count($deps) > 0) {
-			$dep = array_shift($deps);
-			if(!$dep["isHard"]) return $this->installDependencies($deps, $callback); // skip non-hard
-			$this->resolve($dep["name"], $dep["version"], function(Error $error = null, array $results) use (&$deps, $dep, $callback) {
-				if($error) {
-					$callback($error);
-				} else if(count($results) > 1) {
-					$callback(new Error("{$dep["name"]}@{$dep["version"]} has multiple install candidates.", Error::E_PLUGIN_MULTIPLE_CANDIDATES));
-				} else if(count($results) == 0) {
-					$callback(new Error("{$dep["name"]}@{$dep["version"]} (dependency) has no install candidates.", Error::E_PLUGIN_NO_CANDIDATES));
+			$current = array_shift($dependencies);
+			// skip non-hard dependencies
+			if(!$current["isHard"]) return $resolver($dependencies, $resolved);
+			$this->resolve($current["name"], $current["version"])
+				->then(function(array $results) use (&$deferred, &$dependencies, &$resolved, &$resolver) {
+					if(count($results) !== 1) {
+					}
+
+					$resolved[] = $results[0];
+					$resolver($dependencies, $resolved)
+						->then(function($resolved) use (&$deferred) {
+							$deferred->resolve($resolved);
+						});
+				});
+
+			end:
+			return $deferred->promise();
+		};
+
+		// actual install logic
+		$installer = function() use (&$deferred, $target, $plugin) {
+			// get plugin from remote...
+			$this->asyncHandler->getURL($target->getUri())
+				// then write file...
+				->then(function($content) use (&$deferred, $target, $plugin) {
+					$this->asyncHandler->write(\Sheep\PLUGIN_PATH . DIRECTORY_SEPARATOR . $target->getName() . ".phar", $content)
+						// then maybe install more plugins...?
+						->then(function() use (&$deferred, $plugin) {
+							if(count($plugin) > 0) {
+								$this->install(...$plugin);
+							} else { // or resolve the promise.
+								$deferred->resolve();
+							}
+						});
+				});
+		};
+
+		$resolver($depends)
+			->then(function(array $resolved) use (&$installer) {
+				// install dependencies
+				if(count($resolved) > 0) {
+					$this->install(...$resolved)
+						->then($installer);
 				} else {
-					$this->install($results[0], $dep["version"], [$this, "installDependencies"], [$deps, $callback]);
+					$installer();
 				}
 			});
-		} else {
-			$callback(null);
-		}
+
+		return $deferred->promise();
 	}
 
-	public function update(Plugin $plugin, callable $callback) {
+	public function update(Plugin $plugin) : Promise {
 
 	}
 }

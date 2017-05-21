@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 
 
 namespace Sheep\Source;
@@ -25,7 +26,7 @@ class PoggitPlugin extends Plugin {
 		$this->authors = [explode("/", $data["repo_name"])[0]]; // TODO: hack
 		$this->page = $data["html_url"];
 		$this->state = $data["state"];
-		$this->color = $this->stateColor($this->state);
+		//$this->color = $this->stateColor($this->state);
 	}
 
 	public function info() : string {
@@ -33,12 +34,12 @@ class PoggitPlugin extends Plugin {
 		return "Name: $this->name\nVersion: $this->version\nAuthor: $authors\n
 					Page: $this->page\nState: $this->color{$this->data["state_name"]}";
 	}
-
+	/*
 	private function stateColor(int $state) : string {
 		if(0 <= $state && $state <= 2) return F::RED;
 		if(3 <= $state && $state <= 4) return F::YELLOW;
 		if($state === 5) return F::GREEN;
 		if($state === 6) return F::GOLD;
 		return F::STRIKETHROUGH;
-	}
+	}*/
 }

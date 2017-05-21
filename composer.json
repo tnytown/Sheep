@@ -1,0 +1,20 @@
+{
+    "name": "knownunown/sheep",
+    "description": "A PocketMine plugin manager.",
+    "type": "project",
+    "authors": [
+        {
+            "name": "KnownUnown",
+            "email": "andrew.tianyi.pan@gmail.com"
+        }
+    ],
+    "require": {
+        "react/promise": "^2.5",
+        "corneltek/getoptionkit": "^2.5"
+    },
+    "autoload": {
+        "psr-0": {
+            "Sheep\\": "src/"
+        }
+    }
+}

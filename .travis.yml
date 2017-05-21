@@ -18,8 +18,8 @@ install:
   - echo | pecl install channel://pecl.php.net/yaml-2.0.0RC7
 
 before_script:
-  - php -dphar.readonly=0 plugins/DevTools.phar --make $TRAVIS_BUILD_DIR --out plugins/Sheep-$TRAVIS_COMMIT.phar
+  - php -dphar.readonly=0 plugins/DevTools.phar --make $TRAVIS_BUILD_DIR --out plugins/SheepPlugin-$TRAVIS_COMMIT.phar
 
 script:
-  - php PocketMine-MP.phar --no-wizard --disable-readline --debug.level=2 --pluginchecker.target=Sheep | tee output.txt
+  - php PocketMine-MP.phar --no-wizard --disable-readline --debug.level=2 --pluginchecker.target=SheepPlugin | tee output.txt
   - grep "Success" output.txt

@@ -1,65 +1,74 @@
 <?php
+declare(strict_types = 1);
 
 
 namespace Sheep;
 
-
-use Sheep\Command\InstallCommand;
-use Sheep\Command\SearchCommand;
-use Sheep\Command\SheepCommand;
+use React\Promise\Deferred;
+use React\Promise\Promise;
+use Sheep\Async\AsyncHandler;
 use Sheep\Source\Source;
-use pocketmine\plugin\PluginBase;
-use pocketmine\utils\Config;
 use Sheep\Source\SourceManager;
 
-class Sheep extends PluginBase {
+/**
+ * The Sheep API.
+ * @package Sheep
+ */
+class Sheep {
+	private static $instance;
 
-	/** @var Config */
-	private $cache;
 	/** @var SourceManager */
 	private $sourceManager;
+	private $defaultSource;
 
-	public function onEnable() {
-		define("Sheep\\GIT_REVISION", $this->getGitRevision());
-		$this->sourceManager = new SourceManager($this);
-		$this->sourceManager->registerDefaults();
-
-		@mkdir($this->getDataFolder());
-		$this->cache = new Config($this->getDataFolder() . "cache.json", Config::JSON, []);
-
-		$this->getServer()->getCommandMap()->registerAll(
-			"s", [
-				new SheepCommand($this),
-				new InstallCommand($this),
-				new SearchCommand($this)
-			]
-		);
+	public function info(string $plugin, string $version, Source $source = null) : Promise {
+		if($source === null) $source = $this->defaultSource;
+		return $source->resolve($plugin, $version);
 	}
 
-	public function install(Source $source, string $identifier, callable $callback) {
+	public function install(string $plugin, string $version, Source $source = null) : Promise {
+		$deferred = new Deferred();
+		if($source === null) $source = $this->defaultSource;
+
+		$this->info($plugin, $version, $source)
+				->then(function($results) use (&$deferred, &$source) {
+					if(count($results) !== 1) {
+						// < 1: "no plugins", > 1: "too many plugins"
+					}
+
+					/** @var Plugin $plugin */
+					$plugin = $results[0];
+					$source->install($plugin)
+						->then(function() use (&$deferred) {
+							$deferred->resolve();
+						})
+						->otherwise(function($error) use (&$deferred) {
+							$deferred->reject($error);
+						});
+				})
+				->otherwise(function($error) use (&$deferred) {
+					$deferred->reject($error);
+				});
+		return $deferred->promise();
+	}
+
+	public function update() {
 
 	}
 
-	public function search(string $query, callable $callback, string $source = "Forums") {
-		$this->getSourceManager()->get($source)->search($query, $callback);
+	public function uninstall(string $plugin) {
+
 	}
 
-	public function getSourceManager() {
-		return $this->sourceManager;
+	public function init(AsyncHandler $asyncHandler) {
+		$this->sourceManager = new SourceManager($asyncHandler);
+		$this->defaultSource = $this->sourceManager->getDefaultSource();
 	}
 
-	public function getGitRevision() {
-		$ref = @file_get_contents($this->getFile() . DIRECTORY_SEPARATOR . ".git/HEAD");
-		if(!$ref) return "unknown";
-		$rev = trim(@file_get_contents($this->getFile() . ".git/" . trim(explode(" ", $ref)[1])));
-		return $rev ?: "unknown";
-	}
-
-	public function getCache() {
-		return $this->cache;
-	}
-
-	public function onDisable() {
-		$this->getCache()->save();
+	public static function getInstance() : Sheep {
+		if(!self::$instance) {
+			self::$instance = new Sheep();
+		}
+		return self::$instance;
 	}
 }
