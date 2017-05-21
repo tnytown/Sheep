@@ -42,7 +42,6 @@ class PMAsyncHandler implements AsyncHandler {
 
 		$this->scheduler->scheduleAsyncTask(new WriteTask($file, $data,
 			function(bool $error) use (&$deferred) {
-				var_dump($error);
 				if(!$error) {
 					$deferred->reject($error);
 				} else {

@@ -22,7 +22,6 @@ class InstallCommand extends Command {
 			})
 			->otherwise(function($error) use (&$problem) {
 				$problem->print("Failure :(\n");
-				var_dump($error);
 			});
 	}
 }
