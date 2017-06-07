@@ -4,8 +4,6 @@
 namespace Sheep\Command;
 
 
-use Sheep\Utils\Error;
-
 class CommandManager {
 	private $commands;
 
@@ -26,10 +24,6 @@ class CommandManager {
 
 	public function register(Command $command) {
 		$this->commands[$command->getName()] = $command;
-	}
-
-	public function dispatchArray(array $args) : boolean {
-
 	}
 
 	public function registerDefaults() {

@@ -46,4 +46,5 @@ interface Source {
 	 */
 	public function update(Plugin $plugin) : Promise;
 
+	public function constructPlugin(array $data) : Plugin;
 }

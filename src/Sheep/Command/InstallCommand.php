@@ -5,6 +5,7 @@ namespace Sheep\Command;
 
 
 use Sheep\Command\Problem\Problem;
+use Sheep\Utils\Error;
 
 class InstallCommand extends Command {
 
@@ -20,8 +21,8 @@ class InstallCommand extends Command {
 			->then(function() use (&$problem) {
 				$problem->print("Success!");
 			})
-			->otherwise(function($error) use (&$problem) {
-				$problem->print("Failure :(\n");
+			->otherwise(function(Error $error) use (&$problem) {
+				$problem->print("Failure: $error");
 			});
 	}
 }

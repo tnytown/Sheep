@@ -5,20 +5,13 @@ declare(strict_types = 1);
 namespace Sheep;
 
 
-use pocketmine\plugin\PluginDescription;
-use Sheep\Source\Source;
-use Sheep\Task\CurlTask;
-use Sheep\Task\FileWriteTask;
-use pocketmine\Server;
-
-abstract class Plugin implements \JsonSerializable {
+abstract class Plugin implements \JsonSerializable{
 	protected $source;
 	protected $name;
 	protected $authors;
 	protected $version;
 
 	protected $dependencies;
-	protected $installed = false;
 
 	protected $uri;
 
@@ -46,13 +39,6 @@ abstract class Plugin implements \JsonSerializable {
 		return $this->dependencies;
 	}
 
-	/**
-	 * @return bool
-	 */
-	public function isInstalled() : bool {
-		return $this->installed;
-	}
-
 	public function getUri() : string {
 		return $this->uri;
 	}
@@ -66,8 +52,7 @@ abstract class Plugin implements \JsonSerializable {
 			"source" => $this->source,
 			"name" => $this->name,
 			"author" => $this->authors,
-			"version" => $this->version,
-			"installed" => $this->installed,
+			"version" => $this->version
 		];
 	}
 }

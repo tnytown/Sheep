@@ -13,6 +13,6 @@ class CLIProblem implements Problem {
 	}
 
 	public function print(string $message) {
-		fwrite($this->buffer, $message);
+		fwrite($this->buffer, $message . "\n");
 	}
 }

@@ -85,6 +85,14 @@ abstract class BaseSource implements Source {
 	}
 
 	public function update(Plugin $plugin) : Promise {
+		$deferred = new Deferred();
+
+
+		return $deferred->promise();
+	}
+
+
+	private function download(Plugin $plugin, string $location) {
 
 	}
 }

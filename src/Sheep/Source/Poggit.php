@@ -6,6 +6,7 @@ namespace Sheep\Source;
 
 use React\Promise\Deferred;
 use React\Promise\Promise;
+use Sheep\Plugin;
 use Sheep\Utils\Error;
 use Sheep\Utils\Utils;
 
@@ -22,13 +23,13 @@ class Poggit extends BaseSource {
 	public function resolve(string $plugin, string $version) : Promise {
 		$deferred = new Deferred();
 
-		$this->asyncHandler->getURL(self::ENDPOINT . "?name=$plugin" . ($version !== "latest" ? "&version=$version" : ""))
+		$this->asyncHandler->getURL(self::ENDPOINT . "?name=$plugin" . ($version !== "latest" ? "&version=$version" : "&latest-only"))
 			->then(function($data) use (&$deferred) {
 				$ret = [];
 
 				$plugins = json_decode($data, true);
 				foreach($plugins as $plugin) {
-					$ret[] = new PoggitPlugin($plugin);
+					$ret[] = $this->constructPlugin($plugin);
 				}
 
 				$deferred->resolve($ret);
@@ -37,5 +38,9 @@ class Poggit extends BaseSource {
 				$deferred->reject(new Error($error, Error::E_CURL_ERROR));
 			});
 		return $deferred->promise();
+	}
+
+	public function constructPlugin(array $data): Plugin {
+		return new PoggitPlugin($data);
 	}
 }
