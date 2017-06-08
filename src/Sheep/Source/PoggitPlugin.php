@@ -12,7 +12,7 @@ class PoggitPlugin extends Plugin {
 	private $data;
 
 	private $page;
-	private $state;
+	private $poggitState;
 	private $color;
 
 	public function __construct(array $data) {
@@ -25,7 +25,7 @@ class PoggitPlugin extends Plugin {
 		$this->dependencies = $data["deps"];
 		$this->authors = [explode("/", $data["repo_name"])[0]]; // TODO: hack
 		$this->page = $data["html_url"];
-		$this->state = $data["state"];
+		$this->poggitState = $data["state"];
 		//$this->color = $this->stateColor($this->state);
 	}
 

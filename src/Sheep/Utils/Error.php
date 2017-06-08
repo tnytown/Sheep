@@ -15,6 +15,8 @@ class Error {
 
 	const E_CURL_ERROR = 5;
 
+	const E_PLUGIN_NOT_IN_LOCK = 6;
+
 	protected $message;
 	protected $code;
 

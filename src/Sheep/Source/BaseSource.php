@@ -52,21 +52,14 @@ abstract class BaseSource implements Source {
 			return $deferred->promise();
 		};
 
-		// actual install logic
 		$installer = function() use (&$deferred, $target, $plugin) {
-			// get plugin from remote...
-			$this->asyncHandler->getURL($target->getUri())
-				// then write file...
-				->then(function($content) use (&$deferred, $target, $plugin) {
-					$this->asyncHandler->write(\Sheep\PLUGIN_PATH . DIRECTORY_SEPARATOR . $target->getName() . ".phar", $content)
-						// then maybe install more plugins...?
-						->then(function() use (&$deferred, $plugin) {
-							if(count($plugin) > 0) {
-								$this->install(...$plugin);
-							} else { // or resolve the promise.
-								$deferred->resolve();
-							}
-						});
+			$this->download($target, \Sheep\PLUGIN_PATH . DIRECTORY_SEPARATOR . $target->getName() . ".phar")
+				->then(function() use (&$deferred, $plugin) {
+					if(count($plugin) > 0) {
+						$this->install(...$plugin);
+					} else { // or resolve the promise.
+						$deferred->resolve();
+					}
 				});
 		};
 
@@ -86,13 +79,50 @@ abstract class BaseSource implements Source {
 
 	public function update(Plugin $plugin) : Promise {
 		$deferred = new Deferred();
+		$current = $plugin->getVersion();
+		$this->resolve($plugin->getName(), "latest")
+			->then(function(array $resolved) use (&$deferred, $current) {
+				if(count($resolved) === 1) {
+					$plugin = $resolved[0];
+					// Poggit's not enforcing semver yet...not sure how else to compare.
+					// TODO: maybe source-defined version comparison?
+					if($plugin->getVersion() !== $current) {
+						$this->download($plugin, \Sheep\PLUGIN_PATH . DIRECTORY_SEPARATOR . $plugin->getName() . ".phar.update")
+							->then(function() use (&$deferred) {
+								$deferred->resolve();
+							})
+							->otherwise(function(Error $error) use (&$deferred) {
+								$deferred->reject($error);
+							});
+					} else {
+						$deferred->reject(new Error("Plugin is already at it's latest version"));
+					}
+				}
+			})
+			->otherwise(function(Error $error) use (&$deferred) {
+				$deferred->reject($error);
+			});
 
 
 		return $deferred->promise();
 	}
 
 
-	private function download(Plugin $plugin, string $location) {
+	private function download(Plugin $plugin, string $location) : Promise {
+		$deferred = new Deferred();
 
+		$this->asyncHandler->getURL($plugin->getUri())
+			// then write file...
+			->then(function($content) use (&$deferred, $location) {
+				$this->asyncHandler->write($location, $content)
+					->then(function() use (&$deferred) {
+						$deferred->resolve();
+					});
+			})
+			->otherwise(function(string $error) use (&$deferred) {
+				$deferred->reject(new Error($error, Error::E_CURL_ERROR));
+			});
+
+		return $deferred->promise();
 	}
 }

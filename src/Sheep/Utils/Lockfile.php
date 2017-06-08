@@ -21,16 +21,26 @@ class Lockfile {
 		$this->plugins = &$this->data["plugins"];
 	}
 
+	public function updatePlugin(array $plugin) {
+		$this->addPlugin($plugin);
+	}
+
 	public function addPlugin(array $plugin) {
 		$this->plugins[strtolower($plugin["name"])] = $plugin;
+		$this->save();
 	}
 
 	public function getPlugin(string $plugin) {
-		return $this->plugins[$plugin];
+		return @$this->plugins[strtolower($plugin)];
 	}
 
 	public function removePlugin(string $plugin) {
-		unset($this->plugins[$plugin]);
+		unset($this->plugins[strtolower($plugin)]);
+		$this->save();
+	}
+
+	public function getAll() : array {
+		return $this->plugins;
 	}
 
 	public function exists(string $plugin) : bool {

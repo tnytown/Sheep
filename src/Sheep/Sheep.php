@@ -52,6 +52,7 @@ class Sheep {
 					$plugin = $results[0];
 					$source->install($plugin)
 						->then(function() use (&$deferred, $plugin) {
+							$plugin->setState(PluginState::STATE_INSTALLED);
 							$this->lockfile->addPlugin($plugin->jsonSerialize());
 							$deferred->resolve();
 						})
@@ -66,8 +67,35 @@ class Sheep {
 		return $deferred->promise();
 	}
 
-	public function update(string $plugin) : Promise {
+	public function update(string $plugin, Source $source = null) : Promise {
+		$deferred = new Deferred();
+		if($source === null) $source = $this->defaultSource;
 
+		if(($current = $this->lockfile->getPlugin($plugin)) !== null) {
+			$this->info($current["name"], $current["version"])
+				->then(function(array $plugins) use (&$deferred, &$source, $current) {
+					if(count($plugins) === 1) {
+						$source->update($target = $plugins[0])
+							->then(function() use (&$deferred, $target) {
+								$target->setState(PluginState::STATE_UPDATING);
+								$this->lockfile->updatePlugin($target->jsonSerialize());
+								$deferred->resolve();
+							})
+							->otherwise(function(Error $error) use (&$deferred) {
+								$deferred->reject($error);
+							});
+					} else {
+						$deferred->reject(new Error("Cannot resolve plugin: found " . count($plugins)));
+					}
+				})
+				->otherwise(function(Error $error) use (&$deferred) {
+					$deferred->reject($error);
+				});
+		} else {
+			$deferred->reject(new Error("Plugin not found in lock file.", Error::E_PLUGIN_NOT_IN_LOCK));
+		}
+
+		return $deferred->promise();
 	}
 
 	public function uninstall(string $plugin) {

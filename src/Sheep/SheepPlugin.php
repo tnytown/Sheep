@@ -29,13 +29,35 @@ class SheepPlugin extends PluginBase {
 
 		$asyncHandler = new PMAsyncHandler($this->getServer()->getScheduler());
 		$this->api = Sheep::getInstance();
-		$this->api->init($asyncHandler, new Lockfile());
+		$this->api->init($asyncHandler, $lockfile = new Lockfile());
 		$this->sourceManager = $this->api->getSourceManager();
 		$this->commandManager = new CommandManager();
 
 		foreach($this->commandManager->getAll() as $command) {
 			$this->getServer()->getCommandMap()->register("sheep", new PMCommandProxy($command));
 		}
+
+		register_shutdown_function(function() use (&$lockfile) {
+			foreach($lockfile->getAll() as $plugin) {
+				if($plugin["state"] !== PluginState::STATE_UPDATING) continue;
+
+				$base = PLUGIN_PATH . DIRECTORY_SEPARATOR . $plugin["name"];
+				if(file_exists($base . ".phar") && file_exists($base . ".phar.update")) {
+					try {
+						\Phar::unlinkArchive($base . ".phar");
+					} catch(\PharException $exception) {
+						echo "Sheep Updater failed for plugin \"{$plugin["name"]}\": {$exception->getMessage()}\n";
+						break;
+					}
+					@rename($base . ".phar.update", $base . ".phar");
+				}
+
+				$plugin["state"] = PluginState::STATE_INSTALLED;
+				$lockfile->updatePlugin($plugin);
+				$lockfile->save();
+			}
+		});
+
 	}
 
 	public function getSourceManager() {
@@ -51,9 +73,5 @@ class SheepPlugin extends PluginBase {
 
 	public function getCache() {
 		return $this->cache;
-	}
-
-	public function onDisable() {
-		//$this->getCache()->save();
 	}
 }

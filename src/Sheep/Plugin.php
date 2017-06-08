@@ -9,11 +9,12 @@ abstract class Plugin implements \JsonSerializable{
 	protected $source;
 	protected $name;
 	protected $authors;
-	protected $version;
 
+	protected $version;
 	protected $dependencies;
 
 	protected $uri;
+	protected $state = PluginState::STATE_NOT_INSTALLED;
 
 	/**
 	 * Returns human-readable, formatted info on the plugin.
@@ -43,6 +44,14 @@ abstract class Plugin implements \JsonSerializable{
 		return $this->uri;
 	}
 
+	public function getState() {
+		return $this->state;
+	}
+
+	public function setState($state) {
+		$this->state = $state;
+	}
+
 	public function __construct(string $source) {
 		$this->source = $source;
 	}
@@ -52,7 +61,8 @@ abstract class Plugin implements \JsonSerializable{
 			"source" => $this->source,
 			"name" => $this->name,
 			"author" => $this->authors,
-			"version" => $this->version
+			"version" => $this->version,
+			"state" => $this->state,
 		];
 	}
 }
