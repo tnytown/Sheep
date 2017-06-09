@@ -28,9 +28,7 @@ interface Source {
 	public function resolve(string $plugin, string $version) : Promise;
 
 	/**
-	 * Installs a given Plugin. Implement this function to gain custom
-	 * functionality or to work around repository quirks, e.g. requiring
-	 * a cookie to download a plugin.
+	 * Installs a given Plugin.
 	 *
 	 * @param Plugin|Plugin[] ...$plugin The plugin(s) in question.
 	 * @return Promise

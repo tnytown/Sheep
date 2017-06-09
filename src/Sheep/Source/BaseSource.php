@@ -18,62 +18,6 @@ abstract class BaseSource implements Source {
 		$this->asyncHandler = $asyncHandler;
 	}
 
-	public function install(Plugin... $plugin) : Promise {
-		$deferred = new Deferred();
-
-		$target = array_shift($plugin);
-		$depends = $target->getDependencies();
-
-		// resolve all dependencies
-		$resolver = function(array $dependencies, array &$resolved = []) use (&$resolver) : Promise {
-			$deferred = new Deferred();
-
-			if(count($dependencies) === 0) {
-				$deferred->resolve($resolved); // punt result up the stack if we haven't exceeded the limit by now :p
-				goto end;
-			}
-
-			$current = array_shift($dependencies);
-			// skip non-hard dependencies
-			if(!$current["isHard"]) return $resolver($dependencies, $resolved);
-			$this->resolve($current["name"], $current["version"])
-				->then(function(Plugin $plugin) use (&$deferred, &$dependencies, &$resolved, &$resolver) {
-					$resolved[] = $plugin;
-					$resolver($dependencies, $resolved)
-						->then(function($resolved) use (&$deferred) {
-							$deferred->resolve($resolved);
-						});
-				});
-
-			end:
-			return $deferred->promise();
-		};
-
-		$installer = function() use (&$deferred, $target, $plugin) {
-			$this->download($target, \Sheep\PLUGIN_PATH . DIRECTORY_SEPARATOR . $target->getName() . ".phar")
-				->then(function() use (&$deferred, $plugin) {
-					if(count($plugin) > 0) {
-						$this->install(...$plugin);
-					} else { // or resolve the promise.
-						$deferred->resolve();
-					}
-				});
-		};
-
-		$resolver($depends)
-			->then(function(array $resolved) use (&$installer) {
-				// install dependencies
-				if(count($resolved) > 0) {
-					$this->install(...$resolved)
-						->then($installer);
-				} else {
-					$installer();
-				}
-			});
-
-		return $deferred->promise();
-	}
-
 	public function update(Plugin $plugin) : Promise {
 		$deferred = new Deferred();
 		$current = $plugin->getVersion();
