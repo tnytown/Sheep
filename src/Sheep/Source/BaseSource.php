@@ -37,11 +37,8 @@ abstract class BaseSource implements Source {
 			// skip non-hard dependencies
 			if(!$current["isHard"]) return $resolver($dependencies, $resolved);
 			$this->resolve($current["name"], $current["version"])
-				->then(function(array $results) use (&$deferred, &$dependencies, &$resolved, &$resolver) {
-					if(count($results) !== 1) {
-					}
-
-					$resolved[] = $results[0];
+				->then(function(Plugin $plugin) use (&$deferred, &$dependencies, &$resolved, &$resolver) {
+					$resolved[] = $plugin;
 					$resolver($dependencies, $resolved)
 						->then(function($resolved) use (&$deferred) {
 							$deferred->resolve($resolved);
@@ -81,22 +78,19 @@ abstract class BaseSource implements Source {
 		$deferred = new Deferred();
 		$current = $plugin->getVersion();
 		$this->resolve($plugin->getName(), "latest")
-			->then(function(array $resolved) use (&$deferred, $current) {
-				if(count($resolved) === 1) {
-					$plugin = $resolved[0];
-					// Poggit's not enforcing semver yet...not sure how else to compare.
-					// TODO: maybe source-defined version comparison?
-					if($plugin->getVersion() !== $current) {
-						$this->download($plugin, \Sheep\PLUGIN_PATH . DIRECTORY_SEPARATOR . $plugin->getName() . ".phar.update")
-							->then(function() use (&$deferred) {
-								$deferred->resolve();
-							})
-							->otherwise(function(Error $error) use (&$deferred) {
-								$deferred->reject($error);
-							});
-					} else {
-						$deferred->reject(new Error("Plugin is already at it's latest version"));
-					}
+			->then(function(Plugin $plugin) use (&$deferred, $current) {
+				// Poggit's not enforcing semver yet...not sure how else to compare.
+				// TODO: maybe source-defined version comparison?
+				if($plugin->getVersion() !== $current) {
+					$this->download($plugin, \Sheep\PLUGIN_PATH . DIRECTORY_SEPARATOR . $plugin->getName() . ".phar.update")
+						->then(function() use (&$deferred) {
+							$deferred->resolve();
+						})
+						->otherwise(function(Error $error) use (&$deferred) {
+							$deferred->reject($error);
+						});
+				} else {
+					$deferred->reject(new Error("Plugin is already at it's latest version"));
 				}
 			})
 			->otherwise(function(Error $error) use (&$deferred) {
@@ -108,7 +102,7 @@ abstract class BaseSource implements Source {
 	}
 
 
-	private function download(Plugin $plugin, string $location) : Promise {
+	protected function download(Plugin $plugin, string $location) : Promise {
 		$deferred = new Deferred();
 
 		$this->asyncHandler->getURL($plugin->getUri())

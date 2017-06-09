@@ -39,17 +39,7 @@ class Sheep {
 		}
 
 		$this->info($plugin, $version, $source)
-				->then(function($results) use (&$deferred, &$source) {
-					if(($num = count($results)) !== 1) {
-						// < 1: "no plugins", > 1: "too many plugins"
-						$deferred->reject($num === 0 ?
-							new Error("No plugins with that name found", Error::E_PLUGIN_NO_CANDIDATES) :
-							new Error("Too many plugins found", Error::E_PLUGIN_MULTIPLE_CANDIDATES));
-						return;
-					}
-
-					/** @var Plugin $plugin */
-					$plugin = $results[0];
+				->then(function(Plugin $plugin) use (&$deferred, &$source) {
 					$source->install($plugin)
 						->then(function() use (&$deferred, $plugin) {
 							$plugin->setState(PluginState::STATE_INSTALLED);
@@ -73,9 +63,8 @@ class Sheep {
 
 		if(($current = $this->lockfile->getPlugin($plugin)) !== null) {
 			$this->info($current["name"], $current["version"])
-				->then(function(array $plugins) use (&$deferred, &$source, $current) {
-					if(count($plugins) === 1) {
-						$source->update($target = $plugins[0])
+				->then(function(Plugin $target) use (&$deferred, &$source, $current) {
+						$source->update($target)
 							->then(function() use (&$deferred, $target) {
 								$target->setState(PluginState::STATE_UPDATING);
 								$this->lockfile->updatePlugin($target->jsonSerialize());
@@ -84,15 +73,12 @@ class Sheep {
 							->otherwise(function(Error $error) use (&$deferred) {
 								$deferred->reject($error);
 							});
-					} else {
-						$deferred->reject(new Error("Cannot resolve plugin: found " . count($plugins)));
-					}
 				})
 				->otherwise(function(Error $error) use (&$deferred) {
 					$deferred->reject($error);
 				});
 		} else {
-			$deferred->reject(new Error("Plugin not found in lock file.", Error::E_PLUGIN_NOT_IN_LOCK));
+			$deferred->reject(new Error("Plugin not found in lockfile.", Error::E_PLUGIN_NOT_IN_LOCK));
 		}
 
 		return $deferred->promise();

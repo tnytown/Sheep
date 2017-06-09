@@ -25,22 +25,18 @@ class Poggit extends BaseSource {
 
 		$this->asyncHandler->getURL(self::ENDPOINT . "?name=$plugin" . ($version !== "latest" ? "&version=$version" : "&latest-only"))
 			->then(function($data) use (&$deferred) {
-				$ret = [];
-
 				$plugins = json_decode($data, true);
-				foreach($plugins as $plugin) {
-					$ret[] = $this->constructPlugin($plugin);
+				if(count($plugins) === 1) {
+					$deferred->resolve(new PoggitPlugin($plugins[0]));
+				} else {
+					$deferred->reject($plugins === 0 ?
+						new Error("Plugin/version not found", Error::E_PLUGIN_NO_CANDIDATES) :
+						new Error("Too many plugins/versions found", Error::E_PLUGIN_MULTIPLE_CANDIDATES));
 				}
-
-				$deferred->resolve($ret);
 			})
 			->otherwise(function($error) use ($deferred) {
 				$deferred->reject(new Error($error, Error::E_CURL_ERROR));
 			});
 		return $deferred->promise();
-	}
-
-	public function constructPlugin(array $data): Plugin {
-		return new PoggitPlugin($data);
 	}
 }

@@ -19,7 +19,7 @@ interface Source {
 	public function search(string $query) : Promise;
 
 	/**
-	 * Resolves a plugin exactly.
+	 * Resolves a single version of a plugin.
 	 *
 	 * @param string $plugin
 	 * @param string $version
@@ -45,6 +45,4 @@ interface Source {
 	 * @return Promise
 	 */
 	public function update(Plugin $plugin) : Promise;
-
-	public function constructPlugin(array $data) : Plugin;
 }
