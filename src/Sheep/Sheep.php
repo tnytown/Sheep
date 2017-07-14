@@ -87,7 +87,7 @@ class Sheep {
 	// should probably not be promised based as it isn't asynchronous at all
 	public function uninstall(string $plugin) : Promise {
 		$deferred = new Deferred();
-		if(($p = $this->store->get($plugin)) == null) { // "Yes, you should throw an exception
+		if(($p = $this->store->get($plugin)) === null) { // "Yes, you should throw an exception
 														//   Try/catch is too much work?"
 			$deferred->reject(new Error("Plugin does not exist.", Error::E_PLUGIN_NOT_IN_LOCK));
 			return $deferred->promise();

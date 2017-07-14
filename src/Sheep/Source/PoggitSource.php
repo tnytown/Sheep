@@ -8,13 +8,12 @@ use React\Promise\Deferred;
 use React\Promise\Promise;
 use Sheep\Plugin;
 use Sheep\Utils\Error;
-use Sheep\Utils\Utils;
 
 /**
  * Class Poggit
  * @package Sheep\Source
  */
-class Poggit extends BaseSource {
+class PoggitSource extends BaseSource {
 	const ENDPOINT = "https://poggit.pmmp.io/releases.json";
 
 	public function search(string $query) : Promise {
@@ -29,7 +28,7 @@ class Poggit extends BaseSource {
 				if(count($plugins) === 1) {
 					$deferred->resolve(new PoggitPlugin($plugins[0]));
 				} else {
-					$deferred->reject($plugins === 0 ?
+					$deferred->reject(count($plugins) === 0 ?
 						new Error("Plugin/version not found", Error::E_PLUGIN_NO_CANDIDATES) :
 						new Error("Too many plugins/versions found", Error::E_PLUGIN_MULTIPLE_CANDIDATES));
 				}

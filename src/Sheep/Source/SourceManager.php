@@ -31,7 +31,7 @@ class SourceManager {
 	}
 
 	public function registerDefaults() {
-		$this->register("Poggit", new Poggit($this->asyncHandler));
+		$this->register("Poggit", new PoggitSource($this->asyncHandler));
 	}
 
 	public function getDefaultSource() {

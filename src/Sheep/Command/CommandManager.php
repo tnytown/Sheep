@@ -30,6 +30,5 @@ class CommandManager {
 	public function registerDefaults() {
 		$this->register(new InstallCommand());
 		$this->register(new UninstallCommand());
-		$this->register(new UpdateCommand());
 	}
 }

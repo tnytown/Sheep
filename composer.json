@@ -2,6 +2,7 @@
     "name": "knownunown/sheep",
     "description": "A PocketMine plugin manager.",
     "type": "project",
+    "license": "LGPL-3.0",
     "authors": [
         {
             "name": "KnownUnown",

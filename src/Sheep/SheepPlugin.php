@@ -7,18 +7,18 @@ namespace Sheep;
 
 use Sheep\Async\PMAsyncHandler;
 use pocketmine\plugin\PluginBase;
-use pocketmine\utils\Config;
 use Sheep\Command\CommandManager;
+use Sheep\Command\InfoCommand;
 use Sheep\Command\PMCommandProxy;
+use Sheep\Command\UpdateCommand;
 use Sheep\Source\SourceManager;
 use Sheep\Store\FileStore;
-use Sheep\Store\Store;
+use Sheep\Utils\ScanTask;
 
 class SheepPlugin extends PluginBase {
 	/** @var Sheep */
 	private $api;
-	/** @var Config */
-	private $cache;
+	private $store;
 	/** @var SourceManager */
 	private $sourceManager;
 	/** @var CommandManager */
@@ -31,14 +31,19 @@ class SheepPlugin extends PluginBase {
 		$asyncHandler = new PMAsyncHandler($this->getServer()->getScheduler());
 		$this->api = Sheep::getInstance();
 		$this->api->init($asyncHandler, $store = new FileStore("sheep.lock"));
+		$this->store = $store;
 		$this->sourceManager = $this->api->getSourceManager();
 		$this->commandManager = new CommandManager();
+		$this->commandManager->register(new UpdateCommand());
+		$this->commandManager->register(new InfoCommand());
 
 		foreach($this->commandManager->getAll() as $command) {
 			$this->getServer()->getCommandMap()->register("sheep", new PMCommandProxy($command));
 		}
+		$this->scan();
 
 		register_shutdown_function(function() use (&$store) {
+			echo "[*] Sheep Updater is running...\n";
 			foreach($store->getAll() as $plugin) {
 				switch($plugin["state"]) {
 					case PluginState::STATE_UPDATING:
@@ -47,7 +52,7 @@ class SheepPlugin extends PluginBase {
 							try {
 								\Phar::unlinkArchive($base . ".phar");
 							} catch(\PharException $exception) {
-								echo "Sheep Updater failed for plugin \"{$plugin["name"]}\": {$exception->getMessage()}\n";
+								echo "[!] Sheep Updater failed for plugin \"{$plugin["name"]}\": {$exception->getMessage()}\n";
 								break;
 							}
 							@rename($base . ".phar.update", $base . ".phar");
@@ -62,9 +67,15 @@ class SheepPlugin extends PluginBase {
 						break;
 				}
 			}
+
 			$store->persist();
 		});
 
+	}
+
+	public function scan() {
+		$this->getLogger()->info("Scanning loaded plugins for changes...");
+		$this->getServer()->getScheduler()->scheduleTask(new ScanTask($this, $this->store));
 	}
 
 	public function getSourceManager() {
@@ -78,7 +89,7 @@ class SheepPlugin extends PluginBase {
 		return $rev ?: "unknown";
 	}
 
-	public function getCache() {
-		return $this->cache;
+	public function getStore() {
+		return $this->store;
 	}
 }

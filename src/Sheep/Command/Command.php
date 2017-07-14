@@ -54,7 +54,8 @@ abstract class Command {
 		$output = $this->args;
 		$keys = array_keys($output);
 
-		for($i = 0; $i < count($output); $i++) {
+		$num = count($output);
+		for($i = 0; $i < $num; $i++) {
 			if($arg = @$args[$i]) {
 				$output[$keys[$i]] = $arg;
 			} else {
