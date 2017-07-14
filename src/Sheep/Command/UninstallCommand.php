@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 
 
 namespace Sheep\Command;
@@ -8,17 +7,15 @@ namespace Sheep\Command;
 use Sheep\Command\Problem\Problem;
 use Sheep\Utils\Error;
 
-class InstallCommand extends Command {
-
+class UninstallCommand extends Command {
 	public function __construct() {
-		parent::__construct("install", "Installs a plugin.");
-		$this->arg("plugin", "The plugin to install.", true);
-		$this->arg("version", "The version of the plugin.");
+		parent::__construct("uninstall", "Uninstalls a plugin.");
+		$this->arg("plugin", "The plugin to uninstall.", true);
 	}
 
 	public function execute(Problem $problem, array $args) {
-		$problem->print("Installing plugin {$args["plugin"]}...");
-		$this->api->install($args["plugin"], @$args["version"] ?: "latest")
+		$problem->print("Uninstalling plugin {$args["plugin"]}...");
+		$this->api->uninstall($args["plugin"])
 			->then(function() use (&$problem) {
 				$problem->print("Success!");
 			})

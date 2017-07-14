@@ -11,7 +11,8 @@ use pocketmine\utils\Config;
 use Sheep\Command\CommandManager;
 use Sheep\Command\PMCommandProxy;
 use Sheep\Source\SourceManager;
-use Sheep\Utils\Lockfile;
+use Sheep\Store\FileStore;
+use Sheep\Store\Store;
 
 class SheepPlugin extends PluginBase {
 	/** @var Sheep */
@@ -29,7 +30,7 @@ class SheepPlugin extends PluginBase {
 
 		$asyncHandler = new PMAsyncHandler($this->getServer()->getScheduler());
 		$this->api = Sheep::getInstance();
-		$this->api->init($asyncHandler, $lockfile = new Lockfile());
+		$this->api->init($asyncHandler, $store = new FileStore("sheep.lock"));
 		$this->sourceManager = $this->api->getSourceManager();
 		$this->commandManager = new CommandManager();
 
@@ -37,25 +38,31 @@ class SheepPlugin extends PluginBase {
 			$this->getServer()->getCommandMap()->register("sheep", new PMCommandProxy($command));
 		}
 
-		register_shutdown_function(function() use (&$lockfile) {
-			foreach($lockfile->getAll() as $plugin) {
-				if($plugin["state"] !== PluginState::STATE_UPDATING) continue;
+		register_shutdown_function(function() use (&$store) {
+			foreach($store->getAll() as $plugin) {
+				switch($plugin["state"]) {
+					case PluginState::STATE_UPDATING:
+						$base = \Sheep\PLUGIN_PATH . DIRECTORY_SEPARATOR . $plugin["name"];
+						if(file_exists($base . ".phar") && file_exists($base . ".phar.update")) {
+							try {
+								\Phar::unlinkArchive($base . ".phar");
+							} catch(\PharException $exception) {
+								echo "Sheep Updater failed for plugin \"{$plugin["name"]}\": {$exception->getMessage()}\n";
+								break;
+							}
+							@rename($base . ".phar.update", $base . ".phar");
+						}
 
-				$base = PLUGIN_PATH . DIRECTORY_SEPARATOR . $plugin["name"];
-				if(file_exists($base . ".phar") && file_exists($base . ".phar.update")) {
-					try {
-						\Phar::unlinkArchive($base . ".phar");
-					} catch(\PharException $exception) {
-						echo "Sheep Updater failed for plugin \"{$plugin["name"]}\": {$exception->getMessage()}\n";
+						$plugin["state"] = PluginState::STATE_INSTALLED;
+						$store->update($plugin);
 						break;
-					}
-					@rename($base . ".phar.update", $base . ".phar");
+					case PluginState::STATE_NOT_INSTALLED:
+						@unlink(\Sheep\PLUGIN_PATH . $plugin["name"] . ".phar");
+						$store->remove($plugin["name"]);
+						break;
 				}
-
-				$plugin["state"] = PluginState::STATE_INSTALLED;
-				$lockfile->updatePlugin($plugin);
-				$lockfile->save();
 			}
+			$store->persist();
 		});
 
 	}

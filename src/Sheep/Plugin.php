@@ -5,16 +5,16 @@ declare(strict_types = 1);
 namespace Sheep;
 
 
-abstract class Plugin implements \JsonSerializable{
+class Plugin implements \JsonSerializable {
 	protected $source;
 	protected $name;
-	protected $authors;
 
 	protected $version;
 	protected $dependencies;
+	protected $info = [];
 
 	protected $uri;
-	protected $state = PluginState::STATE_NOT_INSTALLED;
+	public $state = PluginState::STATE_NOT_INSTALLED;
 
 	/**
 	 * Returns human-readable, formatted info on the plugin.
@@ -28,10 +28,6 @@ abstract class Plugin implements \JsonSerializable{
 		return $this->name;
 	}
 
-	public function getAuthors() : array {
-		return $this->authors;
-	}
-
 	public function getVersion() : string {
 		return $this->version;
 	}
@@ -40,29 +36,57 @@ abstract class Plugin implements \JsonSerializable{
 		return $this->dependencies;
 	}
 
+	public function getInfo() : array {
+		return $this->info;
+	}
+
 	public function getUri() : string {
 		return $this->uri;
-	}
-
-	public function getState() {
-		return $this->state;
-	}
-
-	public function setState($state) {
-		$this->state = $state;
-	}
-
-	public function __construct(string $source) {
-		$this->source = $source;
 	}
 
 	public function jsonSerialize() {
 		return [
 			"source" => $this->source,
 			"name" => $this->name,
-			"author" => $this->authors,
 			"version" => $this->version,
 			"state" => $this->state,
 		];
+	}
+
+	/**
+	 * Constructs a plugin from the given data.
+	 *
+	 * @param array $data
+	 * @return Plugin
+	 */
+	public static function fromArray(array $data) : Plugin {
+		$plugin = new self();
+
+		$plugin->source = $data["source"];
+		$plugin->name = $data["name"];
+		$plugin->version = $data["version"];
+		$plugin->state = $data["state"];
+
+		$plugin->info = [
+			"source" => $plugin->source,
+			"name" => $plugin->name,
+			"version" => $plugin->version
+		];
+
+		return $plugin;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getState(): int {
+		return $this->state;
+	}
+
+	/**
+	 * @param int $state
+	 */
+	public function setState(int $state) {
+		$this->state = $state;
 	}
 }

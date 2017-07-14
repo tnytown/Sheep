@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 
 namespace Sheep\Async\Task;
@@ -21,7 +22,9 @@ class WriteTask extends AsyncTask {
 	}
 
 	public function onRun() {
-		$this->setResult($this->writeFile($this->location, $this->contents));
+		$result = $this->writeFile($this->location, $this->contents);
+		if(is_int($result)) $result = true; // file_put_contents...
+		$this->setResult($result);
 	}
 
 	public function onCompletion(Server $server) {

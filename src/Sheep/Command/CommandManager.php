@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 
 namespace Sheep\Command;
@@ -28,6 +29,7 @@ class CommandManager {
 
 	public function registerDefaults() {
 		$this->register(new InstallCommand());
+		$this->register(new UninstallCommand());
 		$this->register(new UpdateCommand());
 	}
 }
