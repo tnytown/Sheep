@@ -5,11 +5,5 @@ api: [3.0.0-ALPHA4, 3.0.0-ALPHA5]
 
 author: KnownUnown
 description: A plugin for [installing, uninstalling, viewing] other plugins.
-website: https://www.github.com/KnownUnown/SheepPlugin
-
-permissions:
-  sheep.command:
-    description: "Allows the user access to the SheepPlugin version command."
-    default: op
-
+website: https://www.github.com/KnownUnown/Sheep
 
