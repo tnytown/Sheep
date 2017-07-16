@@ -23,7 +23,9 @@ class MemoryStore implements Store {
 	}
 
 	public function get(string $plugin) {
-		if(!$this->exists($plugin)) return null;
+		if (!$this->exists($plugin)) {
+			return null;
+		}
 		return Plugin::fromArray($this->plugins[strtolower($plugin)]);
 	}
 
@@ -31,7 +33,7 @@ class MemoryStore implements Store {
 		return $this->plugins;
 	}
 
-	public function exists(string $plugin) : bool {
+	public function exists(string $plugin): bool {
 		return isset($this->plugins[strtolower($plugin)]);
 	}
 

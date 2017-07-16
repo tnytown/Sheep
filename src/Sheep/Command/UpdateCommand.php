@@ -18,10 +18,10 @@ class UpdateCommand extends Command {
 	protected function execute(Problem $problem, array $args) {
 		$problem->print("Updating {$args["plugin"]}...");
 		$this->api->update($args["plugin"])
-			->then(function() use (&$problem) {
+			->then(function () use (&$problem) {
 				$problem->print("Success!");
 			})
-			->otherwise(function(Error $error) use (&$problem) {
+			->otherwise(function (Error $error) use (&$problem) {
 				$problem->print($error);
 			});
 	}

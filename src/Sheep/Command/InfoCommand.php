@@ -19,10 +19,10 @@ class InfoCommand extends Command {
 
 	protected function execute(Problem $problem, array $args) {
 		$this->api->info($args["plugin"], "latest")
-			->then(function(Plugin $plugin) use (&$problem) {
+			->then(function (Plugin $plugin) use (&$problem) {
 				$problem->print("- {$plugin->getName()} -");
-				foreach($plugin->getInfo() as $key => $value) {
-					switch($key) {
+				foreach ($plugin->getInfo() as $key => $value) {
+					switch ($key) {
 						case "status":
 							$problem->print(TextFormat::GOLD . $key . TextFormat::RESET . ": " . PluginState::STATE_DESC[$value]);
 							break;
@@ -34,7 +34,7 @@ class InfoCommand extends Command {
 					}
 				}
 			})
-			->otherwise(function(Error $error) use (&$problem) {
+			->otherwise(function (Error $error) use (&$problem) {
 				$problem->print("An error occurred: $error");
 			});
 	}

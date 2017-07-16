@@ -1,5 +1,5 @@
 <?php
-declare(strict_types = 1);
+declare(strict_types=1);
 
 
 namespace Sheep\Async;
@@ -15,7 +15,7 @@ class CLIAsyncHandler implements AsyncHandler {
 		$deferred = new Deferred();
 
 		$result = $this->docURL($url, CurlOptions::CURL_GET, $timeout, $extraHeaders, [], $error);
-		if($error !== "") {
+		if ($error !== "") {
 			$deferred->reject($error);
 		} else {
 			$deferred->resolve($result);
@@ -28,7 +28,7 @@ class CLIAsyncHandler implements AsyncHandler {
 		$deferred = new Deferred();
 
 		$result = $this->readFile($file);
-		if(!$result) {
+		if (!$result) {
 			$deferred->reject();
 		} else {
 			$deferred->resolve($result);
@@ -41,7 +41,7 @@ class CLIAsyncHandler implements AsyncHandler {
 		$deferred = new Deferred();
 
 		$result = $this->writeFile($file, $data);
-		if(!$result) {
+		if (!$result) {
 			$deferred->reject();
 		} else {
 			$deferred->resolve($result);

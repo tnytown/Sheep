@@ -26,22 +26,22 @@ abstract class Command {
 		$this->args[$name] = [$name, $description, $required];
 	}
 
-	public function getName() : string {
+	public function getName(): string {
 		return $this->name;
 	}
 
-	public function getDescription() : string {
+	public function getDescription(): string {
 		return $this->description;
 	}
 
-	public function getArguments() : array {
+	public function getArguments(): array {
 		return $this->args;
 	}
 
-	public function getUsage() : string {
+	public function getUsage(): string {
 		$str = $this->name;
-		foreach($this->args as $arg) {
-			if($arg[2]) { // required
+		foreach ($this->args as $arg) {
+			if ($arg[2]) { // required
 				$str .= " <{$arg[0]}>";
 			} else {
 				$str .= " [{$arg[0]}]";
@@ -55,11 +55,11 @@ abstract class Command {
 		$keys = array_keys($output);
 
 		$num = count($output);
-		for($i = 0; $i < $num; $i++) {
-			if($arg = @$args[$i]) {
+		for ($i = 0; $i < $num; $i++) {
+			if ($arg = @$args[$i]) {
 				$output[$keys[$i]] = $arg;
 			} else {
-				if($output[$keys[$i]][2]) {
+				if ($output[$keys[$i]][2]) {
 					$problem->print($this->getUsage());
 					return;
 				} else {

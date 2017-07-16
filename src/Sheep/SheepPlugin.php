@@ -1,12 +1,12 @@
 <?php
-declare(strict_types = 1);
+declare(strict_types=1);
 
 
 namespace Sheep;
 
 
-use Sheep\Async\PMAsyncHandler;
 use pocketmine\plugin\PluginBase;
+use Sheep\Async\PMAsyncHandler;
 use Sheep\Command\CommandManager;
 use Sheep\Command\InfoCommand;
 use Sheep\Command\PMCommandProxy;
@@ -37,21 +37,21 @@ class SheepPlugin extends PluginBase {
 		$this->commandManager->register(new UpdateCommand());
 		$this->commandManager->register(new InfoCommand());
 
-		foreach($this->commandManager->getAll() as $command) {
+		foreach ($this->commandManager->getAll() as $command) {
 			$this->getServer()->getCommandMap()->register("sheep", new PMCommandProxy($command));
 		}
 		$this->scan();
 
-		register_shutdown_function(function() use (&$store) {
+		register_shutdown_function(function () use (&$store) {
 			echo "[*] Sheep Updater is running...\n";
-			foreach($store->getAll() as $plugin) {
-				switch($plugin["state"]) {
+			foreach ($store->getAll() as $plugin) {
+				switch ($plugin["state"]) {
 					case PluginState::STATE_UPDATING:
 						$base = \Sheep\PLUGIN_PATH . DIRECTORY_SEPARATOR . $plugin["name"];
-						if(file_exists($base . ".phar") && file_exists($base . ".phar.update")) {
+						if (file_exists($base . ".phar") && file_exists($base . ".phar.update")) {
 							try {
 								\Phar::unlinkArchive($base . ".phar");
-							} catch(\PharException $exception) {
+							} catch (\PharException $exception) {
 								echo "[!] Sheep Updater failed for plugin \"{$plugin["name"]}\": {$exception->getMessage()}\n";
 								break;
 							}
@@ -84,7 +84,9 @@ class SheepPlugin extends PluginBase {
 
 	public function getGitRevision() {
 		$ref = @file_get_contents($this->getFile() . DIRECTORY_SEPARATOR . ".git/HEAD");
-		if(!$ref) return "unknown";
+		if (!$ref) {
+			return "unknown";
+		}
 		$rev = trim(@file_get_contents($this->getFile() . ".git/" . trim(explode(" ", $ref)[1])));
 		return $rev ?: "unknown";
 	}

@@ -23,15 +23,17 @@ class ScanTask extends PluginTask {
 		$server = $this->getOwner()->getServer();
 		$sheep = Sheep::getInstance();
 
-		foreach($server->getPluginManager()->getPlugins() as $plugin) {
-			if($this->store->exists($plugin->getName())) continue;
+		foreach ($server->getPluginManager()->getPlugins() as $plugin) {
+			if ($this->store->exists($plugin->getName())) {
+				continue;
+			}
 
-			$sheep->info($plugin->getName(), $plugin->getDescription()->getVersion()) // search default source
-				->then(function(\Sheep\Plugin $plugin) {
-					$plugin->setState(PluginState::STATE_INSTALLED);
-					$this->store->add($plugin);
-				})
-				->otherwise(function(Error $error) use (&$plugin) {
+			$sheep->info($plugin->getName(), $plugin->getDescription()->getVersion())// search default source
+			->then(function (\Sheep\Plugin $plugin) {
+				$plugin->setState(PluginState::STATE_INSTALLED);
+				$this->store->add($plugin);
+			})
+				->otherwise(function (Error $error) use (&$plugin) {
 					$this->store->add(\Sheep\Plugin::fromArray([
 						"source" => "Local",
 						"name" => $plugin->getName(),

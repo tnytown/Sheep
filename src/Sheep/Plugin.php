@@ -1,5 +1,5 @@
 <?php
-declare(strict_types = 1);
+declare(strict_types=1);
 
 
 namespace Sheep;
@@ -20,27 +20,27 @@ class Plugin implements \JsonSerializable {
 	 * Returns human-readable, formatted info on the plugin.
 	 * @return string
 	 */
-	public function __toString() : string {
+	public function __toString(): string {
 		return "@$this->source/$this->name:$this->version";
 	}
 
-	public function getName() : string {
+	public function getName(): string {
 		return $this->name;
 	}
 
-	public function getVersion() : string {
+	public function getVersion(): string {
 		return $this->version;
 	}
 
-	public function getDependencies() : array {
+	public function getDependencies(): array {
 		return $this->dependencies;
 	}
 
-	public function getInfo() : array {
+	public function getInfo(): array {
 		return $this->info;
 	}
 
-	public function getUri() : string {
+	public function getUri(): string {
 		return $this->uri;
 	}
 
@@ -59,7 +59,7 @@ class Plugin implements \JsonSerializable {
 	 * @param array $data
 	 * @return Plugin
 	 */
-	public static function fromArray(array $data) : Plugin {
+	public static function fromArray(array $data): Plugin {
 		$plugin = new self();
 
 		$plugin->source = $data["source"];

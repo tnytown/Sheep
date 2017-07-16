@@ -20,15 +20,15 @@ class HelpCommand extends Command {
 	}
 
 	protected function execute(Problem $problem, array $args) {
-		if(@$args["command"]) {
+		if (@$args["command"]) {
 			$cmd = @$this->commands[$args["command"]];
-			if($cmd instanceof Command) {
+			if ($cmd instanceof Command) {
 				$problem->print("Usage: " . $cmd->getUsage());
 			}
 		} else {
 			$problem->print("Sheep is a plugin manager for PocketMine-MP.\nAvailable commands:");
-			foreach($this->commands as $command) {
-				if($command instanceof Command) {
+			foreach ($this->commands as $command) {
+				if ($command instanceof Command) {
 					$problem->print($command->getName() . self::TAB . $command->getDescription());
 				}
 			}

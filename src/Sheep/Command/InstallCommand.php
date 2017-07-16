@@ -19,10 +19,10 @@ class InstallCommand extends Command {
 	public function execute(Problem $problem, array $args) {
 		$problem->print("Installing plugin {$args["plugin"]}...");
 		$this->api->install($args["plugin"], @$args["version"] ?: "latest")
-			->then(function() use (&$problem) {
+			->then(function () use (&$problem) {
 				$problem->print("Success!");
 			})
-			->otherwise(function(Error $error) use (&$problem) {
+			->otherwise(function (Error $error) use (&$problem) {
 				$problem->print("Failure: $error");
 			});
 	}

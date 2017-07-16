@@ -16,10 +16,10 @@ class UninstallCommand extends Command {
 	public function execute(Problem $problem, array $args) {
 		$problem->print("Uninstalling plugin {$args["plugin"]}...");
 		$this->api->uninstall($args["plugin"])
-			->then(function() use (&$problem) {
+			->then(function () use (&$problem) {
 				$problem->print("Success!");
 			})
-			->otherwise(function(Error $error) use (&$problem) {
+			->otherwise(function (Error $error) use (&$problem) {
 				$problem->print("Failure: $error");
 			});
 	}

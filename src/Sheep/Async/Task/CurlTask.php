@@ -19,14 +19,21 @@ class CurlTask extends AsyncTask {
 	private $args;
 	private $headers;
 
-	public function __construct(string $url, int $type, callable $callback, int $timeout = 10, array $headers = [], array $args = []) {
+	public function __construct(
+		string $url,
+		int $type,
+		callable $callback,
+		int $timeout = 10,
+		array $headers = [],
+		array $args = []
+	) {
 		parent::__construct($callback);
 
 		$this->url = $url;
 		$this->type = $type;
 		$this->timeout = $timeout;
-		$this->headers = (array) $headers;
-		$this->args = (array) $args;
+		$this->headers = (array)$headers;
+		$this->args = (array)$args;
 	}
 
 	public function onRun() {

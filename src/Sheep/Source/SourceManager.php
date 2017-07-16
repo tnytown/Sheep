@@ -1,5 +1,5 @@
 <?php
-declare(strict_types = 1);
+declare(strict_types=1);
 
 
 namespace Sheep\Source;
@@ -23,7 +23,7 @@ class SourceManager {
 	}
 
 	public function register(string $name, Source $source) {
-		if(preg_match("/@deprecated/", (new \ReflectionClass($source))->getDocComment()) > 0) {
+		if (preg_match("/@deprecated/", (new \ReflectionClass($source))->getDocComment()) > 0) {
 			trigger_error("The source $name is deprecated. Using this is not a good idea!", E_USER_DEPRECATED);
 		}
 

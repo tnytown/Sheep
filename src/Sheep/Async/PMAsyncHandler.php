@@ -1,5 +1,5 @@
 <?php
-declare(strict_types = 1);
+declare(strict_types=1);
 
 
 namespace Sheep\Async;
@@ -22,13 +22,13 @@ class PMAsyncHandler implements AsyncHandler {
 		$deferred = new Deferred();
 
 		$this->scheduler->scheduleAsyncTask(new CurlTask($url, CurlOptions::CURL_GET,
-			function(string $result, string $error) use (&$deferred) {
-			if($error) {
-				$deferred->reject($error);
-			} else {
-				$deferred->resolve($result);
-			}
-		}, $timeout, $extraHeaders));
+			function (string $result, string $error) use (&$deferred) {
+				if ($error) {
+					$deferred->reject($error);
+				} else {
+					$deferred->resolve($result);
+				}
+			}, $timeout, $extraHeaders));
 
 		return $deferred->promise();
 	}
@@ -41,8 +41,8 @@ class PMAsyncHandler implements AsyncHandler {
 		$deferred = new Deferred();
 
 		$this->scheduler->scheduleAsyncTask(new WriteTask($file, $data,
-			function(bool $ok) use (&$deferred) {
-				if(!$ok) {
+			function (bool $ok) use (&$deferred) {
+				if (!$ok) {
 					$deferred->reject($ok);
 				} else {
 					$deferred->resolve();

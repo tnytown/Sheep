@@ -12,14 +12,14 @@ class CommandManager {
 		$this->registerDefaults();
 	}
 
-	public function get(string $command) : Command {
+	public function get(string $command): Command {
 		return @$this->commands[$command];
 	}
 
 	/**
 	 * @return Command[]
 	 */
-	public function getAll() : array {
+	public function getAll(): array {
 		return $this->commands;
 	}
 

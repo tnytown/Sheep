@@ -23,7 +23,9 @@ class WriteTask extends AsyncTask {
 
 	public function onRun() {
 		$result = $this->writeFile($this->location, $this->contents);
-		if(is_int($result)) $result = true; // file_put_contents...
+		if (is_int($result)) {
+			$result = true;
+		} // file_put_contents...
 		$this->setResult($result);
 	}
 

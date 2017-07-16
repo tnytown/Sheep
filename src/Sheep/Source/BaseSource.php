@@ -1,5 +1,5 @@
 <?php
-declare(strict_types = 1);
+declare(strict_types=1);
 
 
 namespace Sheep\Source;
@@ -18,26 +18,27 @@ abstract class BaseSource implements Source {
 		$this->asyncHandler = $asyncHandler;
 	}
 
-	public function update(Plugin $plugin) : Promise {
+	public function update(Plugin $plugin): Promise {
 		$deferred = new Deferred();
 		$current = $plugin->getVersion();
 		$this->resolve($plugin->getName(), "latest")
-			->then(function(Plugin $plugin) use (&$deferred, $current) {
+			->then(function (Plugin $plugin) use (&$deferred, $current) {
 				// Poggit's not enforcing semver yet...not sure how else to compare.
 				// TODO: maybe source-defined version comparison?
-				if($plugin->getVersion() !== $current) {
-					$this->download($plugin, \Sheep\PLUGIN_PATH . DIRECTORY_SEPARATOR . $plugin->getName() . ".phar.update")
-						->then(function() use (&$deferred) {
+				if ($plugin->getVersion() !== $current) {
+					$this->download($plugin,
+						\Sheep\PLUGIN_PATH . DIRECTORY_SEPARATOR . $plugin->getName() . ".phar.update")
+						->then(function () use (&$deferred) {
 							$deferred->resolve();
 						})
-						->otherwise(function(Error $error) use (&$deferred) {
+						->otherwise(function (Error $error) use (&$deferred) {
 							$deferred->reject($error);
 						});
 				} else {
 					$deferred->reject(new Error("Plugin is already at it's latest version"));
 				}
 			})
-			->otherwise(function(Error $error) use (&$deferred) {
+			->otherwise(function (Error $error) use (&$deferred) {
 				$deferred->reject($error);
 			});
 
@@ -46,18 +47,18 @@ abstract class BaseSource implements Source {
 	}
 
 
-	protected function download(Plugin $plugin, string $location) : Promise {
+	protected function download(Plugin $plugin, string $location): Promise {
 		$deferred = new Deferred();
 
 		$this->asyncHandler->getURL($plugin->getUri())
 			// then write file...
-			->then(function($content) use (&$deferred, $location) {
+			->then(function ($content) use (&$deferred, $location) {
 				$this->asyncHandler->write($location, $content)
-					->then(function() use (&$deferred) {
+					->then(function () use (&$deferred) {
 						$deferred->resolve();
 					});
 			})
-			->otherwise(function(string $error) use (&$deferred) {
+			->otherwise(function (string $error) use (&$deferred) {
 				$deferred->reject(new Error($error, Error::E_CURL_ERROR));
 			});
 

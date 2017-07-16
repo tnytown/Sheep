@@ -1,9 +1,9 @@
 --- # Poggit-CI Manifest. Open the CI at https://poggit.pmmp.io/ci/KnownUnown/Sheep
 branches:
 - master
-projects:
+
   Sheep:
     path: ""
-    icon: "resources/sheep.png" # CC-BY-SA 2.0 Sue Jackson: http://www.geograph.org.uk/profile/259
+    icon: "resources/sheep.jpg" # CC-BY-SA 2.0 Sue Jackson: http://www.geograph.org.uk/profile/259
     stub: "stub.php"
 ...
