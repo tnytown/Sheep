@@ -22,7 +22,7 @@ class UpdateCommand extends Command {
 				$problem->print("Success!");
 			})
 			->otherwise(function (Error $error) use (&$problem) {
-				$problem->print($error);
+				$problem->print($error->__toString());
 			});
 	}
 }
