@@ -2,12 +2,11 @@
 
 namespace React\Promise;
 
-class Deferred implements PromisorInterface
+final class Deferred implements PromisorInterface
 {
     private $promise;
     private $resolveCallback;
     private $rejectCallback;
-    private $notifyCallback;
     private $canceller;
 
     public function __construct(callable $canceller = null)
@@ -18,11 +17,13 @@ class Deferred implements PromisorInterface
     public function promise()
     {
         if (null === $this->promise) {
-            $this->promise = new Promise(function ($resolve, $reject, $notify) {
+            $canceller = $this->canceller;
+            $this->canceller = null;
+
+            $this->promise = new Promise(function ($resolve, $reject) {
                 $this->resolveCallback = $resolve;
                 $this->rejectCallback  = $reject;
-                $this->notifyCallback  = $notify;
-            }, $this->canceller);
+            }, $canceller);
         }
 
         return $this->promise;
@@ -40,21 +41,5 @@ class Deferred implements PromisorInterface
         $this->promise();
 
         call_user_func($this->rejectCallback, $reason);
-    }
-
-    public function notify($update = null)
-    {
-        $this->promise();
-
-        call_user_func($this->notifyCallback, $update);
-    }
-
-    /**
-     * @deprecated 2.2.0
-     * @see Deferred::notify()
-     */
-    public function progress($update = null)
-    {
-        $this->notify($update);
     }
 }

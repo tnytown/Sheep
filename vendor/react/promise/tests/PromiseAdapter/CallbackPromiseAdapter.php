@@ -2,8 +2,6 @@
 
 namespace React\Promise\PromiseAdapter;
 
-use React\Promise;
-
 class CallbackPromiseAdapter implements PromiseAdapterInterface
 {
     private $callbacks;
@@ -26,11 +24,6 @@ class CallbackPromiseAdapter implements PromiseAdapterInterface
     public function reject()
     {
         return call_user_func_array($this->callbacks['reject'], func_get_args());
-    }
-
-    public function notify()
-    {
-        return call_user_func_array($this->callbacks['notify'], func_get_args());
     }
 
     public function settle()

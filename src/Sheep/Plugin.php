@@ -60,7 +60,7 @@ class Plugin implements \JsonSerializable {
 	 * @return Plugin
 	 */
 	public static function fromArray(array $data): Plugin {
-		$plugin = new self();
+		$plugin = new Plugin();
 
 		$plugin->source = $data["source"];
 		$plugin->name = $data["name"];

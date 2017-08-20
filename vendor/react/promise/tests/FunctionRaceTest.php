@@ -5,17 +5,11 @@ namespace React\Promise;
 class FunctionRaceTest extends TestCase
 {
     /** @test */
-    public function shouldResolveEmptyInput()
+    public function shouldReturnForeverPendingPromiseForEmptyInput()
     {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->identicalTo(null));
-
         race(
             []
-        )->then($mock);
+        )->then($this->expectCallableNever(), $this->expectCallableNever());
     }
 
     /** @test */
@@ -93,119 +87,33 @@ class FunctionRaceTest extends TestCase
     }
 
     /** @test */
-    public function shouldAcceptAPromiseForAnArray()
-    {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->identicalTo(1));
-
-        race(
-            resolve([1, 2, 3])
-        )->then($mock);
-    }
-
-    /** @test */
-    public function shouldResolveToNullWhenInputPromiseDoesNotResolveToArray()
-    {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->identicalTo(null));
-
-        race(
-            resolve(1)
-        )->then($mock);
-    }
-
-    /** @test */
-    public function shouldRejectWhenInputPromiseRejects()
-    {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->identicalTo(null));
-
-        race(
-            reject()
-        )->then($this->expectCallableNever(), $mock);
-    }
-
-    /** @test */
-    public function shouldCancelInputPromise()
-    {
-        $mock = $this
-            ->getMockBuilder('React\Promise\CancellablePromiseInterface')
-            ->getMock();
-        $mock
-            ->expects($this->once())
-            ->method('cancel');
-
-        race($mock)->cancel();
-    }
-
-    /** @test */
     public function shouldCancelInputArrayPromises()
     {
-        $mock1 = $this
-            ->getMockBuilder('React\Promise\CancellablePromiseInterface')
-            ->getMock();
-        $mock1
-            ->expects($this->once())
-            ->method('cancel');
+        $promise1 = new Promise(function () {}, $this->expectCallableOnce());
+        $promise2 = new Promise(function () {}, $this->expectCallableOnce());
 
-        $mock2 = $this
-            ->getMockBuilder('React\Promise\CancellablePromiseInterface')
-            ->getMock();
-        $mock2
-            ->expects($this->once())
-            ->method('cancel');
-
-        race([$mock1, $mock2])->cancel();
+        race([$promise1, $promise2])->cancel();
     }
 
     /** @test */
     public function shouldNotCancelOtherPendingInputArrayPromisesIfOnePromiseFulfills()
     {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->never())
-            ->method('__invoke');
-
-        $deferred = New Deferred($mock);
+        $deferred = new Deferred($this->expectCallableNever());
         $deferred->resolve();
 
-        $mock2 = $this
-            ->getMockBuilder('React\Promise\CancellablePromiseInterface')
-            ->getMock();
-        $mock2
-            ->expects($this->never())
-            ->method('cancel');
+        $promise2 = new Promise(function () {}, $this->expectCallableNever());
 
-        race([$deferred->promise(), $mock2])->cancel();
+        race([$deferred->promise(), $promise2])->cancel();
     }
 
     /** @test */
     public function shouldNotCancelOtherPendingInputArrayPromisesIfOnePromiseRejects()
     {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->never())
-            ->method('__invoke');
-
-        $deferred = New Deferred($mock);
+        $deferred = new Deferred($this->expectCallableNever());
         $deferred->reject();
 
-        $mock2 = $this
-            ->getMockBuilder('React\Promise\CancellablePromiseInterface')
-            ->getMock();
-        $mock2
-            ->expects($this->never())
-            ->method('cancel');
+        $promise2 = new Promise(function () {}, $this->expectCallableNever());
 
-        race([$deferred->promise(), $mock2])->cancel();
+        race([$deferred->promise(), $promise2])->cancel();
     }
 }

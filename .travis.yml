@@ -10,7 +10,7 @@ install:
   - cd ..
   - mkdir PocketMine-MP && cd PocketMine-MP
   - mkdir plugins
-  - wget -O plugins/PluginChecker.php https://gist.githubusercontent.com/KnownUnown/982bbbef98e86ddfc5b5aac570195024/raw/ac2001b78600a51d31acce3bb440732c4c0c1be3/PluginChecker.php
+  - wget -O plugins/PluginChecker.php http://gist.githubusercontent.com/Zachari/41676cd796034d11b6e34a9cf46c3bf7/raw/2503f4cf77bb34dcb158b1f1245da6658a410486/PluginChecker.php
   - wget -O plugins/DevTools.phar http://github.com/pmmp/PocketMine-DevTools/releases/download/v1.12.1/DevTools_v1.12.1.phar
   - wget -O PocketMine-MP.phar http://poggit.pmmp.io/r/10480/PocketMine-MP.phar
   - pecl install channel://pecl.php.net/pthreads-3.1.6

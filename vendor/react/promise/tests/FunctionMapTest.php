@@ -79,36 +79,6 @@ class FunctionMapTest extends TestCase
     }
 
     /** @test */
-    public function shouldAcceptAPromiseForAnArray()
-    {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->identicalTo([2, 4, 6]));
-
-        map(
-            resolve([1, resolve(2), 3]),
-            $this->mapper()
-        )->then($mock);
-    }
-
-    /** @test */
-    public function shouldResolveToEmptyArrayWhenInputPromiseDoesNotResolveToArray()
-    {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->identicalTo([]));
-
-        map(
-            resolve(1),
-            $this->mapper()
-        )->then($mock);
-    }
-
-    /** @test */
     public function shouldPreserveTheOrderOfArrayWhenResolvingAsyncPromises()
     {
         $mock = $this->createCallableMock();
@@ -143,55 +113,13 @@ class FunctionMapTest extends TestCase
     }
 
     /** @test */
-    public function shouldRejectWhenInputPromiseRejects()
-    {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->identicalTo(null));
-
-        map(
-            reject(),
-            $this->mapper()
-        )->then($this->expectCallableNever(), $mock);
-    }
-
-    /** @test */
-    public function shouldCancelInputPromise()
-    {
-        $mock = $this
-            ->getMockBuilder('React\Promise\CancellablePromiseInterface')
-            ->getMock();
-        $mock
-            ->expects($this->once())
-            ->method('cancel');
-
-        map(
-            $mock,
-            $this->mapper()
-        )->cancel();
-    }
-
-    /** @test */
     public function shouldCancelInputArrayPromises()
     {
-        $mock1 = $this
-            ->getMockBuilder('React\Promise\CancellablePromiseInterface')
-            ->getMock();
-        $mock1
-            ->expects($this->once())
-            ->method('cancel');
-
-        $mock2 = $this
-            ->getMockBuilder('React\Promise\CancellablePromiseInterface')
-            ->getMock();
-        $mock2
-            ->expects($this->once())
-            ->method('cancel');
+        $promise1 = new Promise(function () {}, $this->expectCallableOnce());
+        $promise2 = new Promise(function () {}, $this->expectCallableOnce());
 
         map(
-            [$mock1, $mock2],
+            [$promise1, $promise2],
             $this->mapper()
         )->cancel();
     }

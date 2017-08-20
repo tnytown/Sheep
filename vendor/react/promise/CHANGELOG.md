@@ -1,96 +1,46 @@
-CHANGELOG for 2.x
+CHANGELOG for 3.x
 =================
 
-* 2.5.1 (2017-03-25)
+* 3.0.0 (xxxx-xx-xx)
 
-    * Fix circular references when resolving with a promise which follows
-      itself (#94).
+    New major release.
 
-* 2.5.0 (2016-12-22)
+    * Introduce a global task queue to eliminate recursion and reduce stack size
+      when chaining promises (#28).
+    * BC break: The progression API has been removed (#32).
+    * BC break: The promise-array related functions (`all()`, `race()`, `any()`,
+      `some()`, `map()`, `reduce()`) now require an array of promises or values
+      as input. Before, arrays and promises which resolve to an array were
+      supported, other input types resolved to empty arrays or `null` (#35).
+    * BC break: `race()` now returns a forever pending promise when called with
+      an empty array (#83).
+      The behavior is now also in line with the ES6 specification.
+    * BC break: The interfaces `PromiseInterface`, `ExtendedPromiseInterface`
+      and `CancellablePromiseInterface` have been merged into a single
+      `PromiseInterface` (#75).
 
-    * Revert automatic cancellation of pending collection promises once the
-      output promise resolves. This was introduced in 42d86b7 (PR #36, released
-      in [v2.3.0](https://github.com/reactphp/promise/releases/tag/v2.3.0)) and
-      was both unintended and backward incompatible.
-
-      If you need automatic cancellation, you can use something like:
+      Please note, that the following code (which has been commonly used to
+      conditionally cancel a promise) is not longer possible:
 
       ```php
-      function allAndCancel(array $promises)
-      {
-           return \React\Promise\all($promises)
-               ->always(function() use ($promises) {
-                   foreach ($promises as $promise) {
-                       if ($promise instanceof \React\Promise\CancellablePromiseInterface) {
-                           $promise->cancel();
-                       }
-                   }
-              });
+      if ($promise instanceof CancellablePromiseInterface) {
+          $promise->cancel();
       }
       ```
-    * `all()` and `map()` functions now preserve the order of the array (#77).
-    * Fix circular references when resolving a promise with itself (#71).
 
-* 2.4.1 (2016-05-03)
+      If only supporting react/promise >= 3.0, it can be simply changed to:
 
-    * Fix `some()` not cancelling pending promises when too much input promises
-      reject (16ff799).
+      ```php
+      if ($promise instanceof PromiseInterface) {
+          $promise->cancel();
+      }
+      ```
 
-* 2.4.0 (2016-03-31)
+      If also react/promise < 3.0 must be supported, the following code can be
+      used:
 
-    * Support foreign thenables in `resolve()`.
-      Any object that provides a `then()` method is now assimilated to a trusted
-      promise that follows the state of this thenable (#52).
-    * Fix `some()` and `any()` for input arrays containing not enough items
-      (#34).
-
-* 2.3.0 (2016-03-24)
-
-    * Allow cancellation of promises returned by functions working on promise
-      collections (#36).
-    * Handle `\Throwable` in the same way as `\Exception` (#51 by @joshdifabio).
-
-* 2.2.2 (2016-02-26)
-
-    * Fix cancellation handlers called multiple times (#47 by @clue).
-
-* 2.2.1 (2015-07-03)
-
-    * Fix stack error when resolving a promise in its own fulfillment or
-      rejection handlers.
-
-* 2.2.0 (2014-12-30)
-
-    * Introduce new `ExtendedPromiseInterface` implemented by all promises.
-    * Add new `done()` method (part of the `ExtendedPromiseInterface`).
-    * Add new `otherwise()` method (part of the `ExtendedPromiseInterface`).
-    * Add new `always()` method (part of the `ExtendedPromiseInterface`).
-    * Add new `progress()` method (part of the `ExtendedPromiseInterface`).
-    * Rename `Deferred::progress` to `Deferred::notify` to avoid confusion with
-      `ExtendedPromiseInterface::progress` (a `Deferred::progress` alias is
-      still available for backward compatibility)
-    * `resolve()` now always returns a `ExtendedPromiseInterface`.
-
-* 2.1.0 (2014-10-15)
-
-    * Introduce new `CancellablePromiseInterface` implemented by all promises.
-    * Add new `cancel()` method (part of the `CancellablePromiseInterface`).
-
-* 2.0.0 (2013-12-10)
-
-    New major release. The goal is to streamline the API and to make it more
-    compliant with other promise libraries and especially with the new upcoming
-    [ES6 promises specification](https://github.com/domenic/promises-unwrapping/).
-
-    * Add standalone Promise class.
-    * Add new `race()` function.
-    * BC break: Bump minimum PHP version to PHP 5.4.
-    * BC break: Remove `ResolverInterface` and `PromiseInterface` from 
-      `Deferred`.
-    * BC break: Change signature of `PromiseInterface`.
-    * BC break: Remove `When` and `Util` classes and move static methods to
-      functions.
-    * BC break: `FulfilledPromise` and `RejectedPromise` now throw an exception
-      when initialized with a promise instead of a value/reason.
-    * BC break: `Deferred::resolve()` and `Deferred::reject()` no longer return
-      a promise.
+      ```php
+      if ($promise instanceof PromiseInterface) {
+          \React\Promise\resolve($promise)->cancel();
+      }
+      ```

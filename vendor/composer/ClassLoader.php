@@ -56,6 +56,23 @@ class ClassLoader
     private $classMapAuthoritative = false;
     private $missingClasses = array();
 
+
+    public function setPrefixes(array $prefixesPsr0)
+    {
+        $this->prefixesPsr0 = $prefixesPsr0;
+    }
+
+    public function setPrefixesPsr4(array $prefixesPsr4)
+    {
+        $this->prefixLengthsPsr4 = $prefixesPsr4;
+    }
+
+    public function setPrefixDirPsr4(array $prefixDirPsr4)
+    {
+        $this->prefixDirsPsr4 = $prefixDirPsr4;
+    }
+
+
     public function getPrefixes()
     {
         if (!empty($this->prefixesPsr0)) {

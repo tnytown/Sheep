@@ -14,7 +14,7 @@ use Sheep\Utils\Error;
  * @package Sheep\Source
  */
 class PoggitSource extends BaseSource {
-	const ENDPOINT = "https://poggit.pmmp.io/releases.json";
+	const ENDPOINT = "http://poggit.pmmp.io/releases.json";
 
 	public function search(string $query): Promise {
 	}

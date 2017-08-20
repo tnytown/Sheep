@@ -15,7 +15,7 @@ class CLIAsyncHandler implements AsyncHandler {
 		$deferred = new Deferred();
 
 		$result = $this->docURL($url, CurlOptions::CURL_GET, $timeout, $extraHeaders, [], $error);
-		if ($error !== "") {
+		if ($error !== null) {
 			$deferred->reject($error);
 		} else {
 			$deferred->resolve($result);

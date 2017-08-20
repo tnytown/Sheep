@@ -4,7 +4,7 @@ namespace React\Promise;
 
 function resolve($promiseOrValue = null)
 {
-    if ($promiseOrValue instanceof ExtendedPromiseInterface) {
+    if ($promiseOrValue instanceof PromiseInterface) {
         return $promiseOrValue;
     }
 
@@ -15,8 +15,8 @@ function resolve($promiseOrValue = null)
             $canceller = [$promiseOrValue, 'cancel'];
         }
 
-        return new Promise(function ($resolve, $reject, $notify) use ($promiseOrValue) {
-            $promiseOrValue->then($resolve, $reject, $notify);
+        return new Promise(function ($resolve, $reject) use ($promiseOrValue) {
+            $promiseOrValue->then($resolve, $reject);
         }, $canceller);
     }
 
@@ -34,37 +34,32 @@ function reject($promiseOrValue = null)
     return new RejectedPromise($promiseOrValue);
 }
 
-function all($promisesOrValues)
+function all(array $promisesOrValues)
 {
     return map($promisesOrValues, function ($val) {
         return $val;
     });
 }
 
-function race($promisesOrValues)
+function race(array $promisesOrValues)
 {
-    $cancellationQueue = new CancellationQueue();
-    $cancellationQueue->enqueue($promisesOrValues);
+    if (!$promisesOrValues) {
+        return new Promise(function () {});
+    }
 
-    return new Promise(function ($resolve, $reject, $notify) use ($promisesOrValues, $cancellationQueue) {
-        resolve($promisesOrValues)
-            ->done(function ($array) use ($cancellationQueue, $resolve, $reject, $notify) {
-                if (!is_array($array) || !$array) {
-                    $resolve();
-                    return;
-                }
+    $cancellationQueue = new Internal\CancellationQueue();
 
-                foreach ($array as $promiseOrValue) {
-                    $cancellationQueue->enqueue($promiseOrValue);
+    return new Promise(function ($resolve, $reject) use ($promisesOrValues, $cancellationQueue) {
+        foreach ($promisesOrValues as $promiseOrValue) {
+            $cancellationQueue->enqueue($promiseOrValue);
 
-                    resolve($promiseOrValue)
-                        ->done($resolve, $reject, $notify);
-                }
-            }, $reject, $notify);
+            resolve($promiseOrValue)
+                ->done($resolve, $reject);
+        }
     }, $cancellationQueue);
 }
 
-function any($promisesOrValues)
+function any(array $promisesOrValues)
 {
     return some($promisesOrValues, 1)
         ->then(function ($val) {
@@ -72,148 +67,145 @@ function any($promisesOrValues)
         });
 }
 
-function some($promisesOrValues, $howMany)
+function some(array $promisesOrValues, $howMany)
 {
-    $cancellationQueue = new CancellationQueue();
-    $cancellationQueue->enqueue($promisesOrValues);
+    if ($howMany < 1) {
+        return resolve([]);
+    }
 
-    return new Promise(function ($resolve, $reject, $notify) use ($promisesOrValues, $howMany, $cancellationQueue) {
-        resolve($promisesOrValues)
-            ->done(function ($array) use ($howMany, $cancellationQueue, $resolve, $reject, $notify) {
-                if (!is_array($array) || $howMany < 1) {
-                    $resolve([]);
+    $len = count($promisesOrValues);
+
+    if ($len < $howMany) {
+        return reject(
+            new Exception\LengthException(
+                sprintf(
+                    'Input array must contain at least %d item%s but contains only %s item%s.',
+                    $howMany,
+                    1 === $howMany ? '' : 's',
+                    $len,
+                    1 === $len ? '' : 's'
+                )
+            )
+        );
+    }
+
+    $cancellationQueue = new Internal\CancellationQueue();
+
+    return new Promise(function ($resolve, $reject) use ($len, $promisesOrValues, $howMany, $cancellationQueue) {
+        $toResolve = $howMany;
+        $toReject  = ($len - $toResolve) + 1;
+        $values    = [];
+        $reasons   = [];
+
+        foreach ($promisesOrValues as $i => $promiseOrValue) {
+            $fulfiller = function ($val) use ($i, &$values, &$toResolve, $toReject, $resolve) {
+                if ($toResolve < 1 || $toReject < 1) {
                     return;
                 }
 
-                $len = count($array);
+                $values[$i] = $val;
 
-                if ($len < $howMany) {
-                    throw new Exception\LengthException(
-                        sprintf(
-                            'Input array must contain at least %d item%s but contains only %s item%s.',
-                            $howMany,
-                            1 === $howMany ? '' : 's',
-                            $len,
-                            1 === $len ? '' : 's'
-                        )
-                    );
+                if (0 === --$toResolve) {
+                    $resolve($values);
+                }
+            };
+
+            $rejecter = function ($reason) use ($i, &$reasons, &$toReject, $toResolve, $reject) {
+                if ($toResolve < 1 || $toReject < 1) {
+                    return;
                 }
 
-                $toResolve = $howMany;
-                $toReject  = ($len - $toResolve) + 1;
-                $values    = [];
-                $reasons   = [];
+                $reasons[$i] = $reason;
 
-                foreach ($array as $i => $promiseOrValue) {
-                    $fulfiller = function ($val) use ($i, &$values, &$toResolve, $toReject, $resolve) {
-                        if ($toResolve < 1 || $toReject < 1) {
-                            return;
-                        }
+                if (0 === --$toReject) {
+                    $reject($reasons);
+                }
+            };
 
-                        $values[$i] = $val;
+            $cancellationQueue->enqueue($promiseOrValue);
+
+            resolve($promiseOrValue)
+                ->done($fulfiller, $rejecter);
+        }
+    }, $cancellationQueue);
+}
+
+function map(array $promisesOrValues, callable $mapFunc)
+{
+    if (!$promisesOrValues) {
+        return resolve([]);
+    }
+
+    $cancellationQueue = new Internal\CancellationQueue();
+
+    return new Promise(function ($resolve, $reject) use ($promisesOrValues, $mapFunc, $cancellationQueue) {
+        $toResolve = count($promisesOrValues);
+        $values    = [];
+
+        foreach ($promisesOrValues as $i => $promiseOrValue) {
+            $cancellationQueue->enqueue($promiseOrValue);
+            $values[$i] = null;
+
+            resolve($promiseOrValue)
+                ->then($mapFunc)
+                ->done(
+                    function ($mapped) use ($i, &$values, &$toResolve, $resolve) {
+                        $values[$i] = $mapped;
 
                         if (0 === --$toResolve) {
                             $resolve($values);
                         }
-                    };
-
-                    $rejecter = function ($reason) use ($i, &$reasons, &$toReject, $toResolve, $reject) {
-                        if ($toResolve < 1 || $toReject < 1) {
-                            return;
-                        }
-
-                        $reasons[$i] = $reason;
-
-                        if (0 === --$toReject) {
-                            $reject($reasons);
-                        }
-                    };
-
-                    $cancellationQueue->enqueue($promiseOrValue);
-
-                    resolve($promiseOrValue)
-                        ->done($fulfiller, $rejecter, $notify);
-                }
-            }, $reject, $notify);
+                    },
+                    $reject
+                );
+        }
     }, $cancellationQueue);
 }
 
-function map($promisesOrValues, callable $mapFunc)
+function reduce(array $promisesOrValues, callable $reduceFunc, $initialValue = null)
 {
-    $cancellationQueue = new CancellationQueue();
-    $cancellationQueue->enqueue($promisesOrValues);
+    $cancellationQueue = new Internal\CancellationQueue();
 
-    return new Promise(function ($resolve, $reject, $notify) use ($promisesOrValues, $mapFunc, $cancellationQueue) {
-        resolve($promisesOrValues)
-            ->done(function ($array) use ($mapFunc, $cancellationQueue, $resolve, $reject, $notify) {
-                if (!is_array($array) || !$array) {
-                    $resolve([]);
-                    return;
-                }
+    return new Promise(function ($resolve, $reject) use ($promisesOrValues, $reduceFunc, $initialValue, $cancellationQueue) {
+        $total = count($promisesOrValues);
+        $i = 0;
 
-                $toResolve = count($array);
-                $values    = [];
+        $wrappedReduceFunc = function ($current, $val) use ($reduceFunc, $cancellationQueue, $total, &$i) {
+            $cancellationQueue->enqueue($val);
 
-                foreach ($array as $i => $promiseOrValue) {
-                    $cancellationQueue->enqueue($promiseOrValue);
-                    $values[$i] = null;
-
-                    resolve($promiseOrValue)
-                        ->then($mapFunc)
-                        ->done(
-                            function ($mapped) use ($i, &$values, &$toResolve, $resolve) {
-                                $values[$i] = $mapped;
-
-                                if (0 === --$toResolve) {
-                                    $resolve($values);
-                                }
-                            },
-                            $reject,
-                            $notify
-                        );
-                }
-            }, $reject, $notify);
-    }, $cancellationQueue);
-}
-
-function reduce($promisesOrValues, callable $reduceFunc, $initialValue = null)
-{
-    $cancellationQueue = new CancellationQueue();
-    $cancellationQueue->enqueue($promisesOrValues);
-
-    return new Promise(function ($resolve, $reject, $notify) use ($promisesOrValues, $reduceFunc, $initialValue, $cancellationQueue) {
-        resolve($promisesOrValues)
-            ->done(function ($array) use ($reduceFunc, $initialValue, $cancellationQueue, $resolve, $reject, $notify) {
-                if (!is_array($array)) {
-                    $array = [];
-                }
-
-                $total = count($array);
-                $i = 0;
-
-                // Wrap the supplied $reduceFunc with one that handles promises and then
-                // delegates to the supplied.
-                $wrappedReduceFunc = function ($current, $val) use ($reduceFunc, $cancellationQueue, $total, &$i) {
-                    $cancellationQueue->enqueue($val);
-
-                    return $current
-                        ->then(function ($c) use ($reduceFunc, $total, &$i, $val) {
-                            return resolve($val)
-                                ->then(function ($value) use ($reduceFunc, $total, &$i, $c) {
-                                    return $reduceFunc($c, $value, $i++, $total);
-                                });
+            return $current
+                ->then(function ($c) use ($reduceFunc, $total, &$i, $val) {
+                    return resolve($val)
+                        ->then(function ($value) use ($reduceFunc, $total, &$i, $c) {
+                            return $reduceFunc($c, $value, $i++, $total);
                         });
-                };
+                });
+        };
 
-                $cancellationQueue->enqueue($initialValue);
+        $cancellationQueue->enqueue($initialValue);
 
-                array_reduce($array, $wrappedReduceFunc, resolve($initialValue))
-                    ->done($resolve, $reject, $notify);
-            }, $reject, $notify);
+        array_reduce($promisesOrValues, $wrappedReduceFunc, resolve($initialValue))
+            ->done($resolve, $reject);
     }, $cancellationQueue);
 }
 
-// Internal functions
+/**
+ * @internal
+ */
+function enqueue(callable $task)
+{
+    static $queue;
+
+    if (!$queue) {
+        $queue = new Internal\Queue();
+    }
+
+    $queue->enqueue($task);
+}
+
+/**
+ * @internal
+ */
 function _checkTypehint(callable $callback, $object)
 {
     if (!is_object($object)) {

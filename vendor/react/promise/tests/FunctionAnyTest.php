@@ -14,7 +14,7 @@ class FunctionAnyTest extends TestCase
             ->expects($this->once())
             ->method('__invoke')
             ->with(
-                $this->callback(function($exception){
+                $this->callback(function ($exception) {
                     return $exception instanceof LengthException &&
                            'Input array must contain at least 1 item but contains only 0 items.' === $exception->getMessage();
                 })
@@ -22,19 +22,6 @@ class FunctionAnyTest extends TestCase
 
         any([])
             ->then($this->expectCallableNever(), $mock);
-    }
-
-    /** @test */
-    public function shouldResolveToNullWithNonArrayInput()
-    {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->identicalTo(null));
-
-        any(null)
-            ->then($mock);
     }
 
     /** @test */
@@ -90,32 +77,6 @@ class FunctionAnyTest extends TestCase
     }
 
     /** @test */
-    public function shouldAcceptAPromiseForAnArray()
-    {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->identicalTo(1));
-
-        any(resolve([1, 2, 3]))
-            ->then($mock);
-    }
-
-    /** @test */
-    public function shouldResolveToNullArrayWhenInputPromiseDoesNotResolveToArray()
-    {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->identicalTo(null));
-
-        any(resolve(1))
-            ->then($mock);
-    }
-
-    /** @test */
     public function shouldNotRelyOnArryIndexesWhenUnwrappingToASingleResolutionValue()
     {
         $mock = $this->createCallableMock();
@@ -135,70 +96,22 @@ class FunctionAnyTest extends TestCase
     }
 
     /** @test */
-    public function shouldRejectWhenInputPromiseRejects()
-    {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->identicalTo(null));
-
-        any(reject())
-            ->then($this->expectCallableNever(), $mock);
-    }
-
-    /** @test */
-    public function shouldCancelInputPromise()
-    {
-        $mock = $this
-            ->getMockBuilder('React\Promise\CancellablePromiseInterface')
-            ->getMock();
-        $mock
-            ->expects($this->once())
-            ->method('cancel');
-
-        any($mock)->cancel();
-    }
-
-    /** @test */
     public function shouldCancelInputArrayPromises()
     {
-        $mock1 = $this
-            ->getMockBuilder('React\Promise\CancellablePromiseInterface')
-            ->getMock();
-        $mock1
-            ->expects($this->once())
-            ->method('cancel');
+        $promise1 = new Promise(function () {}, $this->expectCallableOnce());
+        $promise2 = new Promise(function () {}, $this->expectCallableOnce());
 
-        $mock2 = $this
-            ->getMockBuilder('React\Promise\CancellablePromiseInterface')
-            ->getMock();
-        $mock2
-            ->expects($this->once())
-            ->method('cancel');
-
-        any([$mock1, $mock2])->cancel();
+        any([$promise1, $promise2])->cancel();
     }
 
     /** @test */
     public function shouldNotCancelOtherPendingInputArrayPromisesIfOnePromiseFulfills()
     {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->never())
-            ->method('__invoke');
-
-
-        $deferred = New Deferred($mock);
+        $deferred = new Deferred($this->expectCallableNever());
         $deferred->resolve();
 
-        $mock2 = $this
-            ->getMockBuilder('React\Promise\CancellablePromiseInterface')
-            ->getMock();
-        $mock2
-            ->expects($this->never())
-            ->method('cancel');
+        $promise2 = new Promise(function () {}, $this->expectCallableNever());
 
-        some([$deferred->promise(), $mock2], 1)->cancel();
+        some([$deferred->promise(), $promise2], 1)->cancel();
     }
 }

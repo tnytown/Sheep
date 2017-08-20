@@ -18,7 +18,7 @@ trait CancelTestTrait
         $mock
             ->expects($this->once())
             ->method('__invoke')
-            ->with($this->isType('callable'), $this->isType('callable'), $this->isType('callable'));
+            ->with($this->isType('callable'), $this->isType('callable'));
 
         $adapter = $this->getPromiseTestAdapter($mock);
 
@@ -85,25 +85,6 @@ trait CancelTestTrait
     }
 
     /** @test */
-    public function cancelShouldProgressPromiseIfCancellerNotifies()
-    {
-        $adapter = $this->getPromiseTestAdapter(function ($resolve, $reject, $progress) {
-            $progress(1);
-        });
-
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->identicalTo(1));
-
-        $adapter->promise()
-            ->then($this->expectCallableNever(), $this->expectCallableNever(), $mock);
-
-        $adapter->promise()->cancel();
-    }
-
-    /** @test */
     public function cancelShouldCallCancellerOnlyOnceIfCancellerResolves()
     {
         $mock = $this->createCallableMock();
@@ -135,12 +116,7 @@ trait CancelTestTrait
     /** @test */
     public function cancelShouldCallCancellerFromDeepNestedPromiseChain()
     {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke');
-
-        $adapter = $this->getPromiseTestAdapter($mock);
+        $adapter = $this->getPromiseTestAdapter($this->expectCallableOnce());
 
         $promise = $adapter->promise()
             ->then(function () {

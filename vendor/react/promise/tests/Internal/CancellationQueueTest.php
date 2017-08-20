@@ -1,6 +1,11 @@
 <?php
 
-namespace React\Promise;
+namespace React\Promise\Internal;
+
+use React\Promise\Deferred;
+use React\Promise\SimpleTestCancellable;
+use React\Promise\SimpleTestCancellableThenable;
+use React\Promise\TestCase;
 
 class CancellationQueueTest extends TestCase
 {
@@ -74,27 +79,22 @@ class CancellationQueueTest extends TestCase
     {
         $this->setExpectedException('\Exception', 'test');
 
-        $mock = $this
-            ->getMockBuilder('React\Promise\CancellablePromiseInterface')
-            ->getMock();
+        $mock = $this->createCallableMock();
         $mock
             ->expects($this->once())
-            ->method('cancel')
+            ->method('__invoke')
             ->will($this->throwException(new \Exception('test')));
 
+        $promise = new SimpleTestCancellableThenable($mock);
+
         $cancellationQueue = new CancellationQueue();
-        $cancellationQueue->enqueue($mock);
+        $cancellationQueue->enqueue($promise);
 
         $cancellationQueue();
     }
 
     private function getCancellableDeferred()
     {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke');
-
-        return new Deferred($mock);
+        return new Deferred($this->expectCallableOnce());
     }
 }
