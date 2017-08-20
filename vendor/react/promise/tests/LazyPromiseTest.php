@@ -22,7 +22,6 @@ class LazyPromiseTest extends TestCase
             },
             'resolve' => [$d, 'resolve'],
             'reject'  => [$d, 'reject'],
-            'notify'  => [$d, 'progress'],
             'settle'  => [$d, 'resolve'],
         ]);
     }
@@ -30,23 +29,13 @@ class LazyPromiseTest extends TestCase
     /** @test */
     public function shouldNotCallFactoryIfThenIsNotInvoked()
     {
-        $factory = $this->createCallableMock();
-        $factory
-            ->expects($this->never())
-            ->method('__invoke');
-
-        new LazyPromise($factory);
+        new LazyPromise($this->expectCallableNever());
     }
 
     /** @test */
     public function shouldCallFactoryIfThenIsInvoked()
     {
-        $factory = $this->createCallableMock();
-        $factory
-            ->expects($this->once())
-            ->method('__invoke');
-
-        $p = new LazyPromise($factory);
+        $p = new LazyPromise($this->expectCallableOnce());
         $p->then();
     }
 

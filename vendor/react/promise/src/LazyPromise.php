@@ -2,7 +2,7 @@
 
 namespace React\Promise;
 
-class LazyPromise implements ExtendedPromiseInterface, CancellablePromiseInterface
+final class LazyPromise implements PromiseInterface
 {
     private $factory;
     private $promise;
@@ -12,14 +12,14 @@ class LazyPromise implements ExtendedPromiseInterface, CancellablePromiseInterfa
         $this->factory = $factory;
     }
 
-    public function then(callable $onFulfilled = null, callable $onRejected = null, callable $onProgress = null)
+    public function then(callable $onFulfilled = null, callable $onRejected = null)
     {
-        return $this->promise()->then($onFulfilled, $onRejected, $onProgress);
+        return $this->promise()->then($onFulfilled, $onRejected);
     }
 
-    public function done(callable $onFulfilled = null, callable $onRejected = null, callable $onProgress = null)
+    public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
-        return $this->promise()->done($onFulfilled, $onRejected, $onProgress);
+        return $this->promise()->done($onFulfilled, $onRejected);
     }
 
     public function otherwise(callable $onRejected)
@@ -30,11 +30,6 @@ class LazyPromise implements ExtendedPromiseInterface, CancellablePromiseInterfa
     public function always(callable $onFulfilledOrRejected)
     {
         return $this->promise()->always($onFulfilledOrRejected);
-    }
-
-    public function progress(callable $onProgress)
-    {
-        return $this->promise()->progress($onProgress);
     }
 
     public function cancel()
@@ -49,8 +44,11 @@ class LazyPromise implements ExtendedPromiseInterface, CancellablePromiseInterfa
     public function promise()
     {
         if (null === $this->promise) {
+            $factory = $this->factory;
+            $this->factory = null;
+
             try {
-                $this->promise = resolve(call_user_func($this->factory));
+                $this->promise = resolve($factory());
             } catch (\Throwable $exception) {
                 $this->promise = new RejectedPromise($exception);
             } catch (\Exception $exception) {

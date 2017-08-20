@@ -2,7 +2,7 @@
 
 namespace React\Promise;
 
-class RejectedPromise implements ExtendedPromiseInterface, CancellablePromiseInterface
+final class RejectedPromise implements PromiseInterface
 {
     private $reason;
 
@@ -15,36 +15,42 @@ class RejectedPromise implements ExtendedPromiseInterface, CancellablePromiseInt
         $this->reason = $reason;
     }
 
-    public function then(callable $onFulfilled = null, callable $onRejected = null, callable $onProgress = null)
+    public function then(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null === $onRejected) {
             return $this;
         }
 
-        try {
-            return resolve($onRejected($this->reason));
-        } catch (\Throwable $exception) {
-            return new RejectedPromise($exception);
-        } catch (\Exception $exception) {
-            return new RejectedPromise($exception);
-        }
+        return new Promise(function (callable $resolve, callable $reject) use ($onRejected) {
+            enqueue(function () use ($resolve, $reject, $onRejected) {
+                try {
+                    $resolve($onRejected($this->reason));
+                } catch (\Throwable $exception) {
+                    $reject($exception);
+                } catch (\Exception $exception) {
+                    $reject($exception);
+                }
+            });
+        });
     }
 
-    public function done(callable $onFulfilled = null, callable $onRejected = null, callable $onProgress = null)
+    public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
-        if (null === $onRejected) {
-            throw UnhandledRejectionException::resolve($this->reason);
-        }
+        enqueue(function () use ($onRejected) {
+            if (null === $onRejected) {
+                throw UnhandledRejectionException::resolve($this->reason);
+            }
 
-        $result = $onRejected($this->reason);
+            $result = $onRejected($this->reason);
 
-        if ($result instanceof self) {
-            throw UnhandledRejectionException::resolve($result->reason);
-        }
+            if ($result instanceof self) {
+                throw UnhandledRejectionException::resolve($result->reason);
+            }
 
-        if ($result instanceof ExtendedPromiseInterface) {
-            $result->done();
-        }
+            if ($result instanceof PromiseInterface) {
+                $result->done();
+            }
+        });
     }
 
     public function otherwise(callable $onRejected)
@@ -63,11 +69,6 @@ class RejectedPromise implements ExtendedPromiseInterface, CancellablePromiseInt
                 return new RejectedPromise($reason);
             });
         });
-    }
-
-    public function progress(callable $onProgress)
-    {
-        return $this;
     }
 
     public function cancel()

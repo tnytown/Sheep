@@ -10,12 +10,11 @@ class PromiseTest extends TestCase
 
     public function getPromiseTestAdapter(callable $canceller = null)
     {
-        $resolveCallback = $rejectCallback = $progressCallback = null;
+        $resolveCallback = $rejectCallback = null;
 
-        $promise = new Promise(function ($resolve, $reject, $progress) use (&$resolveCallback, &$rejectCallback, &$progressCallback) {
-            $resolveCallback  = $resolve;
-            $rejectCallback   = $reject;
-            $progressCallback = $progress;
+        $promise = new Promise(function ($resolve, $reject) use (&$resolveCallback, &$rejectCallback) {
+            $resolveCallback = $resolve;
+            $rejectCallback  = $reject;
         }, $canceller);
 
         return new CallbackPromiseAdapter([
@@ -24,7 +23,6 @@ class PromiseTest extends TestCase
             },
             'resolve' => $resolveCallback,
             'reject'  => $rejectCallback,
-            'notify'  => $progressCallback,
             'settle'  => $resolveCallback,
         ]);
     }
@@ -46,39 +44,5 @@ class PromiseTest extends TestCase
 
         $promise
             ->then($this->expectCallableNever(), $mock);
-    }
-
-    /** @test */
-    public function shouldFulfillIfFullfilledWithSimplePromise()
-    {
-        $adapter = $this->getPromiseTestAdapter();
-
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->identicalTo('foo'));
-
-        $adapter->promise()
-            ->then($mock);
-
-        $adapter->resolve(new SimpleFulfilledTestPromise());
-    }
-
-    /** @test */
-    public function shouldRejectIfRejectedWithSimplePromise()
-    {
-        $adapter = $this->getPromiseTestAdapter();
-
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->identicalTo('foo'));
-
-        $adapter->promise()
-            ->then($this->expectCallableNever(), $mock);
-
-        $adapter->resolve(new SimpleRejectedTestPromise());
     }
 }

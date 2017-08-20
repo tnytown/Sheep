@@ -37,9 +37,9 @@ class ComposerStaticInite1c2ea83a0b0df8dc3bfcfc0270aff1e
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInite1c2ea83a0b0df8dc3bfcfc0270aff1e::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInite1c2ea83a0b0df8dc3bfcfc0270aff1e::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInite1c2ea83a0b0df8dc3bfcfc0270aff1e::$prefixesPsr0;
+            $loader->setPrefixesPsr4(ComposerStaticInite1c2ea83a0b0df8dc3bfcfc0270aff1e::$prefixLengthsPsr4);
+            $loader->setPrefixDirPsr4(ComposerStaticInite1c2ea83a0b0df8dc3bfcfc0270aff1e::$prefixDirsPsr4);
+            $loader->setPrefixes(ComposerStaticInite1c2ea83a0b0df8dc3bfcfc0270aff1e::$prefixesPsr0);
 
         }, null, ClassLoader::class);
     }

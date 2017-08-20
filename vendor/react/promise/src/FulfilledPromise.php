@@ -2,7 +2,7 @@
 
 namespace React\Promise;
 
-class FulfilledPromise implements ExtendedPromiseInterface, CancellablePromiseInterface
+final class FulfilledPromise implements PromiseInterface
 {
     private $value;
 
@@ -15,32 +15,38 @@ class FulfilledPromise implements ExtendedPromiseInterface, CancellablePromiseIn
         $this->value = $value;
     }
 
-    public function then(callable $onFulfilled = null, callable $onRejected = null, callable $onProgress = null)
+    public function then(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null === $onFulfilled) {
             return $this;
         }
 
-        try {
-            return resolve($onFulfilled($this->value));
-        } catch (\Throwable $exception) {
-            return new RejectedPromise($exception);
-        } catch (\Exception $exception) {
-            return new RejectedPromise($exception);
-        }
+        return new Promise(function (callable $resolve, callable $reject) use ($onFulfilled) {
+            enqueue(function () use ($resolve, $reject, $onFulfilled) {
+                try {
+                    $resolve($onFulfilled($this->value));
+                } catch (\Throwable $exception) {
+                    $reject($exception);
+                } catch (\Exception $exception) {
+                    $reject($exception);
+                }
+            });
+        });
     }
 
-    public function done(callable $onFulfilled = null, callable $onRejected = null, callable $onProgress = null)
+    public function done(callable $onFulfilled = null, callable $onRejected = null)
     {
         if (null === $onFulfilled) {
             return;
         }
 
-        $result = $onFulfilled($this->value);
+        enqueue(function () use ($onFulfilled) {
+            $result = $onFulfilled($this->value);
 
-        if ($result instanceof ExtendedPromiseInterface) {
-            $result->done();
-        }
+            if ($result instanceof PromiseInterface) {
+                $result->done();
+            }
+        });
     }
 
     public function otherwise(callable $onRejected)
@@ -55,11 +61,6 @@ class FulfilledPromise implements ExtendedPromiseInterface, CancellablePromiseIn
                 return $value;
             });
         });
-    }
-
-    public function progress(callable $onProgress)
-    {
-        return $this;
     }
 
     public function cancel()

@@ -37,7 +37,7 @@ class TestCase extends \PHPUnit_Framework_TestCase
     public function createCallableMock()
     {
         return $this
-            ->getMockBuilder('React\\Promise\Stub\CallableStub')
+            ->getMockBuilder('React\Promise\Stub\CallableStub')
             ->getMock();
     }
 }

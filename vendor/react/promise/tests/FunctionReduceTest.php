@@ -227,38 +227,6 @@ class FunctionReduceTest extends TestCase
     }
 
     /** @test */
-    public function shouldAcceptAPromiseForAnArray()
-    {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->identicalTo('123'));
-
-        reduce(
-            resolve([1, 2, 3]),
-            $this->append(),
-            ''
-        )->then($mock);
-    }
-
-    /** @test */
-    public function shouldResolveToInitialValueWhenInputPromiseDoesNotResolveToAnArray()
-    {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->identicalTo(1));
-
-        reduce(
-            resolve(1),
-            $this->plus(),
-            1
-        )->then($mock);
-    }
-
-    /** @test */
     public function shouldProvideCorrectBasisValue()
     {
         $insertIntoArray = function ($arr, $val, $i) {
@@ -289,57 +257,13 @@ class FunctionReduceTest extends TestCase
     }
 
     /** @test */
-    public function shouldRejectWhenInputPromiseRejects()
-    {
-        $mock = $this->createCallableMock();
-        $mock
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($this->identicalTo(null));
-
-        reduce(
-            reject(),
-            $this->plus(),
-            1
-        )->then($this->expectCallableNever(), $mock);
-    }
-
-    /** @test */
-    public function shouldCancelInputPromise()
-    {
-        $mock = $this
-            ->getMockBuilder('React\Promise\CancellablePromiseInterface')
-            ->getMock();
-        $mock
-            ->expects($this->once())
-            ->method('cancel');
-
-        reduce(
-            $mock,
-            $this->plus(),
-            1
-        )->cancel();
-    }
-
-    /** @test */
     public function shouldCancelInputArrayPromises()
     {
-        $mock1 = $this
-            ->getMockBuilder('React\Promise\CancellablePromiseInterface')
-            ->getMock();
-        $mock1
-            ->expects($this->once())
-            ->method('cancel');
-
-        $mock2 = $this
-            ->getMockBuilder('React\Promise\CancellablePromiseInterface')
-            ->getMock();
-        $mock2
-            ->expects($this->once())
-            ->method('cancel');
+        $promise1 = new Promise(function () {}, $this->expectCallableOnce());
+        $promise2 = new Promise(function () {}, $this->expectCallableOnce());
 
         reduce(
-            [$mock1, $mock2],
+            [$promise1, $promise2],
             $this->plus(),
             1
         )->cancel();

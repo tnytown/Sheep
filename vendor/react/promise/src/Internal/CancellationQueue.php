@@ -1,8 +1,11 @@
 <?php
 
-namespace React\Promise;
+namespace React\Promise\Internal;
 
-class CancellationQueue
+/**
+ * @internal
+ */
+final class CancellationQueue
 {
     private $started = false;
     private $queue = [];

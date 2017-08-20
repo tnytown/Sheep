@@ -17,7 +17,7 @@ class PMCommandProxy extends PMCommand {
 		parent::__construct($command->getName(), $command->getDescription(), $command->getUsage());
 	}
 
-	public function execute(CommandSender $sender, $commandLabel, array $args) {
+	public function execute(CommandSender $sender, string $commandLabel, array $args) {
 		if (!($sender instanceof ConsoleCommandSender)) {
 			$sender->sendMessage("You must execute this command from the console.");
 			return;
