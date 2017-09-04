@@ -19,7 +19,7 @@ class ScanTask extends PluginTask {
 		$this->store = $store;
 	}
 
-	public function onRun($currentTick) {
+	public function onRun(int $currentTick) {
 		$server = $this->getOwner()->getServer();
 		$sheep = Sheep::getInstance();
 

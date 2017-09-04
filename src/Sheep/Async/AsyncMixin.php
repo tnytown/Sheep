@@ -37,6 +37,7 @@ trait AsyncMixin {
 		$err = curl_error($ch);
 		curl_close($ch);
 
+		if(!$ret) $ret = ""; // curl_exec returns false on error
 		return $ret;
 	}
 
