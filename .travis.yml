@@ -16,7 +16,7 @@ install:
   - cd ..
   - mkdir PocketMine-MP && cd PocketMine-MP
   - mkdir plugins
-  - wget -O plugins/PluginChecker.php https://gist.githubusercontent.com/KnownUnown/982bbbef98e86ddfc5b5aac570195024/raw/7bfcfd35fc509db06ca61801e1a4bd371b32af03/PluginChecker.php
+  - wget -O plugins/PluginChecker.php https://gist.githubusercontent.com/KnownUnown/982bbbef98e86ddfc5b5aac570195024/raw/341241230275529b1de4c96097f1fd91c5aa20d3/PluginChecker.php
   - wget -O plugins/DevTools.phar https://github.com/PocketMine/DevTools/releases/download/v1.11.0/DevTools_v1.11.0.phar
   - wget -O PocketMine-MP.phar https://jenkins.pmmp.io/job/PocketMine-MP-PHP-7.0/lastSuccessfulBuild/artifact/PocketMine-MP_1.6.2dev-555_815c6977_API-3.0.0-ALPHA7.phar
   - pecl install channel://pecl.php.net/pthreads-3.1.6
@@ -28,4 +28,4 @@ before_script:
 
 script:
   - php PocketMine-MP.phar --no-wizard --disable-readline --debug.level=2 --pluginchecker.target=SheepPlugin | tee output.txt
-  - grep "Success" output.txt
+  - grep "Success\!" output.txt
