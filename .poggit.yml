@@ -3,7 +3,8 @@ branches:
   - master
 projects:
   Sheep:
-    includeDirs: ["vendor/"]
+    includeDirs:
+      - vendor: vendor
     path: ""
     icon: ".poggit/sheep.png" # CC-BY-SA 2.0 Sue Jackson: http://www.geograph.org.uk/profile/259
     stub: "stub.php"
