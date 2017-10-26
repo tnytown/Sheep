@@ -27,7 +27,7 @@ class CurlTask extends AsyncTask {
 		array $headers = [],
 		array $args = []
 	) {
-		parent::__construct($callback);
+		$this->storeLocal($callback);
 
 		$this->url = $url;
 		$this->type = $type;

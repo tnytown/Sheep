@@ -68,11 +68,12 @@ class Sheep {
 		}
 
 		if (($current = $this->store->get($plugin)) !== null) {
-			$this->info($current["name"], $current["version"])
+			$this->info($current->getName(), $current->getVersion())
 				->then(function (Plugin $target) use (&$deferred, &$source, $current) {
 					$source->update($target)
-						->then(function () use (&$deferred, $target) {
+						->then(function (Plugin $updated) use (&$deferred, $target) {
 							$target->setState(PluginState::STATE_UPDATING);
+							$target->update = $updated->getVersion();
 							$this->store->update($target);
 							$deferred->resolve();
 						})

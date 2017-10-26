@@ -10,6 +10,8 @@ class Plugin implements \JsonSerializable {
 	protected $name;
 
 	protected $version;
+	/** @internal */
+	public $update;
 	protected $dependencies;
 	protected $info = [];
 
@@ -32,6 +34,10 @@ class Plugin implements \JsonSerializable {
 		return $this->version;
 	}
 
+	public function getUpdate(): string {
+	    return $this->update;
+    }
+
 	public function getDependencies(): array {
 		return $this->dependencies;
 	}
@@ -49,6 +55,7 @@ class Plugin implements \JsonSerializable {
 			"source" => $this->source,
 			"name" => $this->name,
 			"version" => $this->version,
+            "update" => $this->update,
 			"state" => $this->state,
 		];
 	}
@@ -65,6 +72,7 @@ class Plugin implements \JsonSerializable {
 		$plugin->source = $data["source"];
 		$plugin->name = $data["name"];
 		$plugin->version = $data["version"];
+		$plugin->update = @$data["update"]; // hack - should actually migrate configs in a safe manner
 		$plugin->state = $data["state"];
 
 		$plugin->info = [

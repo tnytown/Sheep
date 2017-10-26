@@ -15,7 +15,7 @@ class WriteTask extends AsyncTask {
 	private $location, $contents;
 
 	public function __construct(string $location, string $contents, callable $callback) {
-		parent::__construct($callback);
+		$this->storeLocal($callback);
 
 		$this->location = $location;
 		$this->contents = $contents;

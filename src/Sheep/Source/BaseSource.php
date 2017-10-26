@@ -28,14 +28,14 @@ abstract class BaseSource implements Source {
 				if ($plugin->getVersion() !== $current) {
 					$this->download($plugin,
 						\Sheep\PLUGIN_PATH . DIRECTORY_SEPARATOR . $plugin->getName() . ".phar.update")
-						->then(function () use (&$deferred) {
-							$deferred->resolve();
+						->then(function () use (&$deferred, $plugin) {
+							$deferred->resolve($plugin);
 						})
 						->otherwise(function (Error $error) use (&$deferred) {
 							$deferred->reject($error);
 						});
 				} else {
-					$deferred->reject(new Error("Plugin is already at it's latest version"));
+					$deferred->reject(new Error("Plugin is already at its latest version"));
 				}
 			})
 			->otherwise(function (Error $error) use (&$deferred) {

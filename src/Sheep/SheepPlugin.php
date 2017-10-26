@@ -49,17 +49,19 @@ class SheepPlugin extends PluginBase {
 					case PluginState::STATE_UPDATING:
 						$base = \Sheep\PLUGIN_PATH . DIRECTORY_SEPARATOR . $plugin["name"];
 						if (file_exists($base . ".phar") && file_exists($base . ".phar.update")) {
-							try {
-								\Phar::unlinkArchive($base . ".phar");
-							} catch (\PharException $exception) {
-								echo "[!] Sheep Updater failed for plugin \"{$plugin["name"]}\": {$exception->getMessage()}\n";
-								break;
-							}
-							@rename($base . ".phar.update", $base . ".phar");
-						}
+                            try {
+                                \Phar::unlinkArchive($base . ".phar");
+                            } catch (\PharException $exception) {
+                                echo "[!] Sheep Updater failed for plugin \"{$plugin["name"]}\": {$exception->getMessage()}\n";
+                                break;
+                            }
+                            @rename($base . ".phar.update", $base . ".phar");
+                        }
 
+                        $plugin["version"] = $plugin["update"];
+						$plugin["update"] = null;
 						$plugin["state"] = PluginState::STATE_INSTALLED;
-						$store->update($plugin);
+						$store->update(Plugin::fromArray($plugin));
 						break;
 					case PluginState::STATE_NOT_INSTALLED:
 						@unlink(\Sheep\PLUGIN_PATH . $plugin["name"] . ".phar");
