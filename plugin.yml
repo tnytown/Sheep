@@ -1,6 +1,6 @@
 name: Sheep
 main: Sheep\SheepPlugin
-version: 5.0.2
+version: 5.0.3
 api: [3.0.0-ALPHA7, 3.0.0-ALPHA8, 3.0.0-ALPHA9]
 
 author: KnownUnown
