@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Sheep;
 
 
+use pocketmine\plugin\PharPluginLoader;
 use pocketmine\plugin\PluginBase;
 use Sheep\Async\PMAsyncHandler;
 use Sheep\Command\CommandManager;
@@ -25,8 +26,13 @@ class SheepPlugin extends PluginBase {
 	private $commandManager;
 
 	public function onEnable() {
-		include_once("../../vendor/autoload.php");
-		if(!defined("Sheep\\PLUGIN_PATH")) define("Sheep\\PLUGIN_PATH", constant("pocketmine\\PLUGIN_PATH"));
+	    if(!$this->isPhar()) {
+	        $this->getLogger()->alert("It is not recommended to run Sheep from source.");
+	        $this->getLogger()->alert("You can get a packaged release of Sheep at https://poggit.pmmp.io/p/Sheep/");
+        }
+
+		include_once($this->getFile() . "/vendor/autoload.php");
+		self::defineOnce("Sheep\\PLUGIN_PATH", constant("pocketmine\\PLUGIN_PATH"));
 
 		$asyncHandler = new PMAsyncHandler($this->getServer()->getScheduler());
 		$this->api = Sheep::getInstance();
@@ -42,6 +48,7 @@ class SheepPlugin extends PluginBase {
 		}
 		$this->scan();
 
+		if(!defined("Sheep\\STARTED_UP"))
 		register_shutdown_function(function () use (&$store) {
 			echo "[*] Sheep Updater is running...\n";
 			foreach ($store->getAll() as $plugin) {
@@ -72,7 +79,7 @@ class SheepPlugin extends PluginBase {
 
 			$store->persist();
 		});
-
+        self::defineOnce("Sheep\\STARTED_UP", true);
 	}
 
 	public function scan() {
@@ -84,7 +91,7 @@ class SheepPlugin extends PluginBase {
 		return $this->sourceManager;
 	}
 
-	public function getGitRevision() {
+	private function getGitRevision() {
 		$ref = @file_get_contents($this->getFile() . DIRECTORY_SEPARATOR . ".git/HEAD");
 		if (!$ref) {
 			return "unknown";
@@ -92,6 +99,10 @@ class SheepPlugin extends PluginBase {
 		$rev = trim(@file_get_contents($this->getFile() . ".git/" . trim(explode(" ", $ref)[1])));
 		return $rev ?: "unknown";
 	}
+
+	private static function defineOnce(string $name, $value) {
+	    if(!defined($name)) define($name, $value);
+    }
 
 	public function getStore() {
 		return $this->store;

@@ -9,7 +9,6 @@ use Sheep\Command\Problem\Problem;
 
 class HelpCommand extends Command {
 
-	const TAB = "	";
 	private $commands;
 
 	public function __construct(array $commands) {
@@ -29,7 +28,7 @@ class HelpCommand extends Command {
 			$problem->print("Sheep is a plugin manager for PocketMine-MP.\nAvailable commands:");
 			foreach ($this->commands as $command) {
 				if ($command instanceof Command) {
-					$problem->print($command->getName() . self::TAB . $command->getDescription());
+					$problem->print($command->getName() . "\t" . $command->getDescription());
 				}
 			}
 		}
