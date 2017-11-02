@@ -26,7 +26,7 @@ class SheepPlugin extends PluginBase {
 
 	public function onEnable() {
 		include_once("../../vendor/autoload.php");
-		define("Sheep\\PLUGIN_PATH", constant("pocketmine\\PLUGIN_PATH"));
+		if(!defined("Sheep\\PLUGIN_PATH")) define("Sheep\\PLUGIN_PATH", constant("pocketmine\\PLUGIN_PATH"));
 
 		$asyncHandler = new PMAsyncHandler($this->getServer()->getScheduler());
 		$this->api = Sheep::getInstance();
