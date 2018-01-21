@@ -1,4 +1,23 @@
 <?php
+/**
+ * Copyright (c) 2017, 2018 KnownUnown
+ *
+ * This file is part of Sheep.
+ *
+ * Sheep is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Sheep is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 declare(strict_types=1);
 
 
@@ -26,64 +45,73 @@ class Sheep {
 	/** @var Store */
 	private $store;
 
-	public function info(string $plugin, string $version, Source $source = null): Promise {
-		if ($source === null) {
-			$source = $this->defaultSource;
+	public static function getInstance(): Sheep {
+		if(!self::$instance) {
+			self::$instance = new Sheep();
 		}
-		return $source->resolve($plugin, $version);
+		return self::$instance;
 	}
 
 	public function install(string $plugin, string $version, Source $source = null): Promise {
 		$deferred = new Deferred();
-		if ($source === null) {
+		if($source === null) {
 			$source = $this->defaultSource;
 		}
-		if ($this->store->exists($plugin)) {
+		if($this->store->exists($plugin)) {
 			$deferred->reject(new Error("Plugin already installed.", Error::E_PLUGIN_ALREADY_INSTALLED));
 			goto end;
 		}
 
 		$this->info($plugin, $version, $source)
-			->then(function (Plugin $plugin) use (&$deferred, &$source) {
+			->then(function(Plugin $plugin) use (&$deferred, &$source) {
 				$source->install($plugin)
-					->then(function () use (&$deferred, $plugin) {
+					->then(function() use (&$deferred, $plugin) {
 						$plugin->setState(PluginState::STATE_INSTALLED);
 						$this->store->add($plugin);
 						$deferred->resolve();
 					})
-					->otherwise(function ($error) use (&$deferred) {
+					->otherwise(function($error) use (&$deferred) {
 						$deferred->reject($error);
 					});
 			})
-			->otherwise(function ($error) use (&$deferred) {
+			->otherwise(function($error) use (&$deferred) {
 				$deferred->reject($error);
 			});
 		end:
 		return $deferred->promise();
 	}
 
+	public function info(string $plugin, string $version, Source $source = null): Promise {
+		if($source === null) {
+			$source = $this->defaultSource;
+		}
+		return $source->resolve($plugin, $version);
+	}
+
+	// should probably not be promised based as it isn't asynchronous at all
+
 	public function update(string $plugin, Source $source = null): Promise {
 		$deferred = new Deferred();
-		if ($source === null) {
+		if($source === null) {
 			$source = $this->defaultSource;
 		}
 
 		try {
 			$current = $this->store->get($plugin);
 			$this->info($current->getName(), $current->getVersion())
-				->then(function (Plugin $target) use (&$deferred, &$source, $current) {
+				->then(function(Plugin $target) use (&$deferred, &$source, $current) {
 					$source->update($target)
-						->then(function (Plugin $updated) use (&$deferred, $target) {
+						->then(function(Plugin $updated) use (&$deferred, $target) {
 							$target->setState(PluginState::STATE_UPDATING);
 							$target->update = $updated->getVersion();
 							$this->store->update($target);
 							$deferred->resolve();
 						})
-						->otherwise(function (Error $error) use (&$deferred) {
+						->otherwise(function(Error $error) use (&$deferred) {
 							$deferred->reject($error);
 						});
 				})
-				->otherwise(function (Error $error) use (&$deferred) {
+				->otherwise(function(Error $error) use (&$deferred) {
 					$deferred->reject($error);
 				});
 		} catch(PluginNotFoundException $e) {
@@ -93,7 +121,6 @@ class Sheep {
 		return $deferred->promise();
 	}
 
-	// should probably not be promised based as it isn't asynchronous at all
 	public function uninstall(string $plugin): Promise {
 		$deferred = new Deferred();
 		try {
@@ -112,13 +139,6 @@ class Sheep {
 		$this->sourceManager = new SourceManager($asyncHandler);
 		$this->defaultSource = $this->sourceManager->getDefaultSource();
 		$this->store = $store;
-	}
-
-	public static function getInstance(): Sheep {
-		if (!self::$instance) {
-			self::$instance = new Sheep();
-		}
-		return self::$instance;
 	}
 
 	/**
