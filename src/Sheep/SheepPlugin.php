@@ -91,15 +91,6 @@ class SheepPlugin extends PluginBase {
 		return $this->sourceManager;
 	}
 
-	private function getGitRevision() {
-		$ref = @file_get_contents($this->getFile() . DIRECTORY_SEPARATOR . ".git/HEAD");
-		if (!$ref) {
-			return "unknown";
-		}
-		$rev = trim(@file_get_contents($this->getFile() . ".git/" . trim(explode(" ", $ref)[1])));
-		return $rev ?: "unknown";
-	}
-
 	private static function defineOnce(string $name, $value) {
 	    if(!defined($name)) define($name, $value);
     }

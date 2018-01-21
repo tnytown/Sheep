@@ -6,6 +6,7 @@ namespace Sheep\Store;
 
 
 use Sheep\Plugin;
+use Sheep\Source\PluginNotFoundException;
 
 interface Store {
 
@@ -17,7 +18,8 @@ interface Store {
 
 	/**
 	 * @param string $plugin
-	 * @return Plugin|null
+	 * @return Plugin
+     * @throws PluginNotFoundException
 	 */
 	public function get(string $plugin);
 

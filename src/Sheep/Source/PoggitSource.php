@@ -45,20 +45,18 @@ class PoggitSource extends BaseSource {
 		$target = array_shift($plugin);
 		$depends = $target->getDependencies();
 
-		// resolve all dependencies
 		$resolver = function (array $dependencies, array &$resolved = []) use (&$resolver) : Promise {
 			$deferred = new Deferred();
 
 			if (count($dependencies) === 0) {
-				$deferred->resolve($resolved); // punt result up the stack if we haven't exceeded the limit by now :p
-				goto end;
+				$deferred->resolve($resolved); // punt result up the stack
+                return $deferred->promise();
 			}
 
 			$current = array_shift($dependencies);
 			// skip non-hard dependencies
-			if (!$current["isHard"]) {
-				return $resolver($dependencies, $resolved);
-			}
+			if (!$current["isHard"]) return $resolver($dependencies, $resolved);
+
 			$this->resolve($current["name"], $current["version"])
 				->then(function (Plugin $plugin) use (&$deferred, &$dependencies, &$resolved, &$resolver) {
 					$resolved[] = $plugin;
@@ -66,9 +64,9 @@ class PoggitSource extends BaseSource {
 						->then(function ($resolved) use (&$deferred) {
 							$deferred->resolve($resolved);
 						});
-				});
+				})
+                ->otherwise($deferred->reject());
 
-			end:
 			return $deferred->promise();
 		};
 
@@ -83,6 +81,7 @@ class PoggitSource extends BaseSource {
 				});
 		};
 
+		// resolution of dependencies
 		$resolver($depends)
 			->then(function (array $resolved) use (&$installer) {
 				// install dependencies

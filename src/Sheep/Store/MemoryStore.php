@@ -6,6 +6,7 @@ namespace Sheep\Store;
 
 
 use Sheep\Plugin;
+use Sheep\Source\PluginNotFoundException;
 
 class MemoryStore implements Store {
 	protected $plugins = [];
@@ -22,10 +23,13 @@ class MemoryStore implements Store {
 		unset($this->plugins[strtolower($plugin)]);
 	}
 
+	/**
+	 * @param string $plugin
+	 * @return Plugin
+	 * @throws PluginNotFoundException
+	 */
 	public function get(string $plugin) {
-		if (!$this->exists($plugin)) {
-			return null;
-		}
+		if (!$this->exists($plugin)) throw new PluginNotFoundException($plugin);
 		return Plugin::fromArray($this->plugins[strtolower($plugin)]);
 	}
 
