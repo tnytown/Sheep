@@ -44,6 +44,12 @@ interface Store {
 
 	public function getAll(): array;
 
+	/**
+	 * @param int $state
+	 * @return Plugin[]
+	 */
+	public function getByState(int $state): array;
+
 	public function exists(string $plugin): bool;
 
 	public function persist();

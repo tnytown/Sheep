@@ -21,19 +21,10 @@
 declare(strict_types=1);
 
 
-namespace Sheep\Command\Problem;
+namespace Sheep\Source;
 
-
-use pocketmine\command\ConsoleCommandSender;
-
-class PMProblem extends Problem {
-	private $sender;
-
-	public function __construct(ConsoleCommandSender $sender) {
-		$this->sender = $sender;
-	}
-
-	public function print(string $message) {
-		$this->sender->sendMessage($message);
+class SourceNotFoundException extends \Exception {
+	public function __construct(string $source) {
+		parent::__construct("Source {$source} not found", 0, null);
 	}
 }

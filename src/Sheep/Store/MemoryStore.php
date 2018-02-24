@@ -25,9 +25,11 @@ namespace Sheep\Store;
 
 
 use Sheep\Plugin;
+use Sheep\PluginState;
 use Sheep\Source\PluginNotFoundException;
 
 class MemoryStore implements Store {
+	/** @var Plugin[] */
 	protected $plugins = [];
 
 	public function update(Plugin $plugin) {
@@ -51,15 +53,25 @@ class MemoryStore implements Store {
 		if(!$this->exists($plugin)) {
 			throw new PluginNotFoundException($plugin);
 		}
-		return Plugin::fromArray($this->plugins[strtolower($plugin)]);
+		return $this->plugins[strtolower($plugin)];
 	}
 
-	public function exists(string $plugin): bool {
-		return isset($this->plugins[strtolower($plugin)]);
+
+	public function getByState(int $state): array {
+		$plugins = [];
+		foreach($this->plugins as $plugin) {
+			if($plugin->getState() === $state) $plugins[] = &$plugin;
+		}
+		return $plugins;
 	}
 
 	public function getAll(): array {
 		return $this->plugins;
+	}
+
+
+	public function exists(string $plugin): bool {
+		return isset($this->plugins[strtolower($plugin)]);
 	}
 
 	public function persist() {

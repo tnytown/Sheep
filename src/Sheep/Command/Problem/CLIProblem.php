@@ -24,7 +24,7 @@ declare(strict_types=1);
 namespace Sheep\Command\Problem;
 
 
-class CLIProblem implements Problem {
+class CLIProblem extends Problem {
 	private $buffer;
 
 	public function __construct($buffer = STDIN) {

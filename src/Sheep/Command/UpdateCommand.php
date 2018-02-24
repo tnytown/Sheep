@@ -20,10 +20,10 @@
 
 declare(strict_types=1);
 
-
 namespace Sheep\Command;
 
 
+use pocketmine\utils\TextFormat;
 use Sheep\Command\Problem\Problem;
 use Sheep\Utils\Error;
 
@@ -35,13 +35,15 @@ class UpdateCommand extends Command {
 	}
 
 	protected function execute(Problem $problem, array $args) {
-		$problem->print("Updating {$args["plugin"]}...");
-		$this->api->update($args["plugin"])
-			->then(function() use (&$problem) {
-				$problem->print("Success!");
+		$plugin = $args["plugin"];
+		$problem->printf("Updating %s...", $plugin);
+		$this->api->update($plugin)
+			->then(function() use (&$problem, $plugin) {
+				$problem->printf("Successfully downloaded an update for %s. %sPlease restart your server to enable it.",
+					$plugin, TextFormat::RED . TextFormat::BOLD);
 			})
 			->otherwise(function(Error $error) use (&$problem) {
-				$problem->print($error->__toString());
+				$problem->print("Failure: $error");
 			});
 	}
 }

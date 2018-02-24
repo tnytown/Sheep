@@ -49,11 +49,20 @@ class SourceManager {
 		$this->sources[$name] = $source;
 	}
 
-	public function get(string $name) {
-		return isset($this->sources[$name]) ? $this->sources[$name] : false;
+	/**
+	 * Gets a source.
+	 *
+	 * @param string $name The name of the source.
+	 *
+	 * @return Source
+	 * @throws SourceNotFoundException
+	 */
+	public function get(string $name): Source {
+		if(!isset($this->sources[$name])) throw new SourceNotFoundException($name);
+		return $this->sources[$name];
 	}
 
-	public function getDefaultSource() {
+	public function getDefaultSource(): Source {
 		return $this->sources["Poggit"];
 	}
 }

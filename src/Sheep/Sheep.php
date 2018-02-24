@@ -52,7 +52,7 @@ class Sheep {
 		return self::$instance;
 	}
 
-	public function install(string $plugin, string $version, Source $source = null): Promise {
+	public function install(string $plugin, string $version, ?Source $source): Promise {
 		$deferred = new Deferred();
 		if($source === null) {
 			$source = $this->defaultSource;
@@ -81,16 +81,14 @@ class Sheep {
 		return $deferred->promise();
 	}
 
-	public function info(string $plugin, string $version, Source $source = null): Promise {
+	public function info(string $plugin, string $version, ?Source $source): Promise {
 		if($source === null) {
 			$source = $this->defaultSource;
 		}
 		return $source->resolve($plugin, $version);
 	}
 
-	// should probably not be promised based as it isn't asynchronous at all
-
-	public function update(string $plugin, Source $source = null): Promise {
+	public function update(string $plugin, ?Source $source): Promise {
 		$deferred = new Deferred();
 		if($source === null) {
 			$source = $this->defaultSource;
@@ -98,7 +96,7 @@ class Sheep {
 
 		try {
 			$current = $this->store->get($plugin);
-			$this->info($current->getName(), $current->getVersion())
+			$this->info($current->getName(), $current->getVersion(), $source)
 				->then(function(Plugin $target) use (&$deferred, &$source, $current) {
 					$source->update($target)
 						->then(function(Plugin $updated) use (&$deferred, $target) {

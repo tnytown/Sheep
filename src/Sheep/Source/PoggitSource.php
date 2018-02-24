@@ -66,7 +66,7 @@ class PoggitSource extends BaseSource {
 							$deferred->resolve($resolved);
 						});
 				})
-				->otherwise($deferred->reject());
+				->otherwise([$deferred, "reject"]);
 
 			return $deferred->promise();
 		};
