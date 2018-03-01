@@ -70,7 +70,7 @@ class SheepPlugin extends PluginBase {
 
 		$this->api = Sheep::getInstance();
 		$asyncHandler = new PMAsyncHandler($this->getServer()->getScheduler());
-		CurlTask::setMetadata($this->getServer()->getName(), $this->getServer()->getVersion());
+		CurlTask::setMetadata($this->getServer()->getName(), $this->getServer()->getPocketMineVersion());
 		$this->api->init($asyncHandler, $store = new FileStore("sheep.lock"));
 		$this->store = $store;
 		$this->sourceManager = $this->api->getSourceManager();

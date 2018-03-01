@@ -32,6 +32,6 @@ abstract class Problem {
 	public abstract function print(string $message);
 
 	public function printf(string $format, ...$args) {
-		$this->print(sprintf($format, $args));
+		$this->print(sprintf($format, ...$args));
 	}
 }

@@ -44,7 +44,11 @@ class PoggitSource extends BaseSource {
 		$target = array_shift($plugin);
 		$depends = $target->getDependencies();
 
-		$resolver = function(array $dependencies, array &$resolved = []) use (&$resolver) : Promise {
+		$rejector = function(Error $error) use (&$deferred) {
+			$deferred->reject($error);
+		};
+
+		$resolver = function(array $dependencies, array &$resolved = []) use (&$resolver, &$rejector) : Promise {
 			$deferred = new Deferred();
 
 			if(count($dependencies) === 0) {
@@ -59,19 +63,20 @@ class PoggitSource extends BaseSource {
 			}
 
 			$this->resolve($current["name"], $current["version"])
-				->then(function(Plugin $plugin) use (&$deferred, &$dependencies, &$resolved, &$resolver) {
+				->then(function(Plugin $plugin) use (&$deferred, &$dependencies, &$resolved, &$resolver, &$rejector) {
 					$resolved[] = $plugin;
 					$resolver($dependencies, $resolved)
 						->then(function($resolved) use (&$deferred) {
 							$deferred->resolve($resolved);
-						});
+						})
+						->otherwise($rejector);
 				})
-				->otherwise([$deferred, "reject"]);
+				->otherwise($rejector);
 
 			return $deferred->promise();
 		};
 
-		$installer = function() use (&$deferred, $target, $plugin) {
+		$installer = function() use (&$deferred, $target, $plugin, $rejector) {
 			$this->download($target, \Sheep\PLUGIN_PATH . DIRECTORY_SEPARATOR . $target->getName() . ".phar")
 				->then(function() use (&$deferred, $plugin) {
 					if(count($plugin) > 0) {
@@ -79,7 +84,8 @@ class PoggitSource extends BaseSource {
 					} else { // or resolve the promise.
 						$deferred->resolve();
 					}
-				});
+				})
+				->otherwise($rejector);
 		};
 
 		// resolution of dependencies
@@ -92,7 +98,8 @@ class PoggitSource extends BaseSource {
 				} else {
 					$installer();
 				}
-			});
+			})
+			->otherwise($rejector);
 
 		return $deferred->promise();
 	}
@@ -103,7 +110,8 @@ class PoggitSource extends BaseSource {
 		$this->asyncHandler->getURL(self::ENDPOINT . "?name=$plugin" . ($version !== "latest" ? "&version=$version" : "&latest-only"))
 			->then(function($data) use (&$deferred) {
 				$plugins = json_decode($data, true);
-				if(count($plugins) === 1) {
+				if($plugins === null) $deferred->reject(new Error("Invalid data received from Poggit API", Error::E_CURL_ERROR));
+				else if(count($plugins) === 1) {
 					$deferred->resolve(new PoggitPlugin($plugins[0]));
 				} else {
 					$deferred->reject(count($plugins) === 0 ?
