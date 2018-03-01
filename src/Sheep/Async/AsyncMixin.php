@@ -24,7 +24,11 @@ declare(strict_types=1);
 namespace Sheep\Async;
 
 
+use Sheep\Variant;
+
 trait AsyncMixin {
+	private static $brand, $version;
+
 	public function docURL(
 		string $url,
 		int $type,
@@ -47,7 +51,8 @@ trait AsyncMixin {
 		curl_setopt($ch, CURLOPT_AUTOREFERER, true);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 		curl_setopt($ch, CURLOPT_HTTPHEADER,
-			array_merge(["User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0 Sheep"],
+			array_merge([sprintf("User-Agent: Sheep/%s (%s; %s %s)",
+				\Sheep\VERSION, Variant::VARIANT_DESC[\Sheep\VARIANT], self::$brand, self::$version)],
 				$extraHeaders));
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, (int)$timeout);
@@ -68,5 +73,10 @@ trait AsyncMixin {
 
 	public function writeFile(string $location, string $contents) {
 		return @file_put_contents($location, $contents);
+	}
+
+	public static function setMetadata(string $brand, string $version) {
+		self::$brand = $brand;
+		self::$version = $version;
 	}
 }

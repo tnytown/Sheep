@@ -34,6 +34,7 @@ namespace Sheep {
 	}
 	require(getVendorPath() . "/vendor/autoload.php");
 	define("Sheep\\PLUGIN_PATH", getcwd());
+	define("Sheep\\VARIANT", Variant::CONSOLE);
 
 	$store = new MemoryStore();
 	Sheep::getInstance()->init(new Async\CLIAsyncHandler(), $store);

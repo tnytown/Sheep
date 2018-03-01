@@ -47,7 +47,7 @@ class PMAsyncHandler implements AsyncHandler {
 				} else {
 					$deferred->resolve($result);
 				}
-			}, $timeout, $extraHeaders));
+			}, $timeout, $extraHeaders, [], \Sheep\VERSION, \Sheep\VARIANT));
 
 		return $deferred->promise();
 	}

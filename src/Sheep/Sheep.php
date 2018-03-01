@@ -45,6 +45,10 @@ class Sheep {
 	/** @var Store */
 	private $store;
 
+	public function __construct() {
+		define("Sheep\\VERSION", yaml_parse(file_get_contents(\Phar::running() . "/plugin.yml"))["version"]);
+	}
+
 	public static function getInstance(): Sheep {
 		if(!self::$instance) {
 			self::$instance = new Sheep();

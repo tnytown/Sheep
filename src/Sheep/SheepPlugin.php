@@ -27,6 +27,7 @@ namespace Sheep;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 use Sheep\Async\PMAsyncHandler;
+use Sheep\Async\Task\CurlTask;
 use Sheep\Command\CommandManager;
 use Sheep\Command\InfoCommand;
 use Sheep\Command\PMCommandProxy;
@@ -59,12 +60,17 @@ class SheepPlugin extends PluginBase {
 		include_once($this->getFile() . "/vendor/autoload.php");
 		self::defineOnce("Sheep\\PLUGIN_PATH", constant("pocketmine\\PLUGIN_PATH"));
 
+		self::defineOnce("Sheep\\VARIANT",
+			$this->getServer()->getName() === "PocketMine-MP" ? Variant::POCKETMINE : Variant::SPOON);
+
+
 		$this->saveDefaultConfig();
 		$this->getConfig()->setDefaults((new Config($this->getFile() . "/resources/config.yml", Config::YAML))->getAll());
 		$this->getConfig()->save();
 
-		$asyncHandler = new PMAsyncHandler($this->getServer()->getScheduler());
 		$this->api = Sheep::getInstance();
+		$asyncHandler = new PMAsyncHandler($this->getServer()->getScheduler());
+		CurlTask::setMetadata($this->getServer()->getName(), $this->getServer()->getVersion());
 		$this->api->init($asyncHandler, $store = new FileStore("sheep.lock"));
 		$this->store = $store;
 		$this->sourceManager = $this->api->getSourceManager();

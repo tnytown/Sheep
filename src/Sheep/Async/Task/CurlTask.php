@@ -38,24 +38,35 @@ class CurlTask extends AsyncTask {
 	private $args;
 	private $headers;
 
+	private $ver, $var;
+
 	public function __construct(
 		string $url,
 		int $type,
 		callable $callback,
 		int $timeout = 10,
 		array $headers = [],
-		array $args = []
+		array $args = [],
+		string $version,
+		int $variant
 	) {
 		$this->storeLocal($callback);
 
 		$this->url = $url;
 		$this->type = $type;
 		$this->timeout = $timeout;
-		$this->headers = (array)$headers;
-		$this->args = (array)$args;
+		$this->headers = (array) $headers;
+		$this->args = (array) $args;
+
+		$this->ver = $version;
+		$this->var = $variant;
 	}
 
 	public function onRun() {
+		if(!defined("Sheep\\VERSION")) { // constants may already be defined in this worker
+			define("Sheep\\VERSION", $this->ver); // hack because pthreads doesn't copy over constants (for docURL in mixin)
+			define("Sheep\\VARIANT", $this->var);
+		}
 		$error = null;
 		$result = $this->docURL($this->url, $this->type, $this->timeout, $this->headers, $this->args, $error);
 		$this->setResult([$result, $error]);
