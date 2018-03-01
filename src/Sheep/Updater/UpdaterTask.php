@@ -21,11 +21,10 @@
 declare(strict_types=1);
 
 
-namespace Sheep\Utils;
+namespace Sheep\Updater;
 
 
 use pocketmine\plugin\Plugin;
-use pocketmine\plugin\PluginLogger;
 use pocketmine\scheduler\PluginTask;
 use Sheep\PluginState;
 use Sheep\Sheep;
@@ -36,14 +35,16 @@ class UpdaterTask extends PluginTask {
 	private $logger;
 	private $config;
 
+	private $updateHandler;
 	private $api;
 	private $store;
 
-	public function __construct(Plugin $owner, PluginLogger $logger, array $config, Sheep $api, Store $store) {
+	public function __construct(Plugin $owner, UpdateHandler $handler, Sheep $api, Store $store) {
 		parent::__construct($owner);
 
-		$this->logger = $logger;
-		$this->config = $config;
+		$this->logger = $owner->getLogger();
+		$this->config = $owner->getConfig()->getNested("updater");
+		$this->updateHandler = $handler;
 		$this->api = $api;
 		$this->store = $store;
 	}
@@ -53,26 +54,34 @@ class UpdaterTask extends PluginTask {
 
 		$eligible = $this->store->getByState(PluginState::STATE_INSTALLED);
 		$updater = function(callable $endFunc, array &$eligible) use (&$updater): void {
+			// if there are no remaining plugins to be updated, call the end function
 			if(count($eligible) === 0) {
 				$endFunc();
 				return;
 			}
 
+			// take a plugin from the queue
 			$plugin = array_pop($eligible);
 			$source = null;
 			try {
-				$source = $this->api->getSourceManager()->get($plugin->getInfo()["source"]);
+				// try to get the plugin's source
+				$source = $this->api->getSourceManager()->get($plugin["source"]);
 			} catch(SourceNotFoundException $e) {
+				// update the next plugin in the queue
 				$updater($endFunc, $eligible);
+				return;
 			}
 
-			$this->api->update($plugin->getName(), $source)->always(function() use (&$updater, &$endFunc, &$eligible) {
+			// update the plugin with the source
+			$this->api->update($plugin["name"], $source)->always(function() use (&$updater, &$endFunc, &$eligible) {
+				// update the next plugin in the queue
 				$updater($endFunc, $eligible);
 			});
 		};
 
 		$updater(function(): void {
-			echo "i'm a terrible person";
+			if(count($this->store->getByState(PluginState::STATE_UPDATING)) > 0)
+				$this->updateHandler->handlePluginsUpdated();
 		}, $eligible);
 	}
 }

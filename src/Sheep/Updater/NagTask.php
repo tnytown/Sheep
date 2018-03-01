@@ -5,7 +5,7 @@
  * This file is part of Sheep.
  *
  * Sheep is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by 
+ * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
@@ -21,36 +21,26 @@
 declare(strict_types=1);
 
 
-namespace Sheep\Store;
+namespace Sheep\Updater;
 
+use pocketmine\plugin\Plugin;
+use pocketmine\scheduler\PluginTask;
+use Sheep\PluginState;
+use Sheep\Store\Store;
 
-use Sheep\Plugin;
-use Sheep\Source\PluginNotFoundException;
+class NagTask extends PluginTask {
+	private $store;
+	private $message;
 
-interface Store {
+	public function __construct(Plugin $owner, Store $store, string $message) {
+		parent::__construct($owner);
 
-	public function add(Plugin $plugin);
+		$this->store = $store;
+		$this->message = $message;
+	}
 
-	public function update(Plugin $plugin);
-
-	public function remove(string $plugin);
-
-	/**
-	 * @param string $plugin
-	 * @return Plugin
-	 * @throws PluginNotFoundException
-	 */
-	public function get(string $plugin);
-
-	public function getAll(): array;
-
-	/**
-	 * @param int $state
-	 * @return array
-	 */
-	public function getByState(int $state): array;
-
-	public function exists(string $plugin): bool;
-
-	public function persist();
+	public function onRun(int $currentTick) {
+		$this->getOwner()->getLogger()->warning(
+			sprintf($this->message, count($this->store->getByState(PluginState::STATE_UPDATING))));
+	}
 }

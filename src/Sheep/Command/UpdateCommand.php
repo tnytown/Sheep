@@ -25,13 +25,17 @@ namespace Sheep\Command;
 
 use pocketmine\utils\TextFormat;
 use Sheep\Command\Problem\Problem;
+use Sheep\Updater\UpdateHandler;
 use Sheep\Utils\Error;
 
 class UpdateCommand extends Command {
+	private $updateHandler;
 
-	public function __construct() {
+	public function __construct(UpdateHandler $handler) {
 		parent::__construct("update", "Updates a plugin.");
 		$this->arg("plugin", "The plugin to update.", true);
+
+		$this->updateHandler = $handler;
 	}
 
 	protected function execute(Problem $problem, array $args) {
@@ -39,8 +43,11 @@ class UpdateCommand extends Command {
 		$problem->printf("Updating %s...", $plugin);
 		$this->api->update($plugin)
 			->then(function() use (&$problem, $plugin) {
-				$problem->printf("Successfully downloaded an update for %s. %sPlease restart your server to enable it.",
-					$plugin, TextFormat::RED . TextFormat::BOLD);
+				$problem->printf("Successfully downloaded an update for %s. %s.",
+					$plugin, $this->updateHandler->isRestartEnabled() ?
+						TextFormat::GREEN . "Sheep will restart your server to apply the update" :
+						TextFormat::RED . TextFormat::BOLD . "Please restart your server to apply the update");
+				$this->updateHandler->handlePluginsUpdated();
 			})
 			->otherwise(function(Error $error) use (&$problem) {
 				$problem->print("Failure: $error");

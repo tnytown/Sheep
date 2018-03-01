@@ -2,14 +2,16 @@ updater:
   # Automatic checking interval in minutes. Set to 0 to disable automatic updating.
   interval: 120
   # Message to send when checking for updates.
-  message: Checking for plugin updates...
+  message: "Checking for plugin updates..."
 
   nag:
     # Nag interval in minutes. Set to 0 to disable the nag message.
+    # Nag messages will also be disabled if you enable automatic restart.
     interval: 30
     # Nag message sent to console to prompt for server restart (for applying updates).
-    message: %d update(s) has/have been downloaded since you last restarted your server. These update(s) will not be applied until you restart your server.
+    message: "%d update(s) has/have been downloaded since you last restarted your server. These update(s) will not be applied until you restart your server."
 
+  # PLEASE READ CAREFULLY!
   # Configures the updater's auto-stop functionality.
   # This DOES NOT restart your server implicitly - it is technically
   # impossible for Sheep to do so. What it does do is stop
@@ -23,15 +25,18 @@ updater:
     delay: 120
 
     warning:
+      # Restart warning interval in minutes. Set to 0 to disable the warning message.
+      # This should divide the restart delay evenly.
+      interval: 30
       # Warning shown in the server console.
-      console: Restarting to apply %d plugin updates in %d minutes.
+      console: "Restarting to apply %d plugin update(s) in %d minutes."
       # Warning broadcast to players.
-      broadcast: The server is restarting to apply plugin updates in %2$d minutes.
+      broadcast: "The server is restarting to apply plugin updates in %2$d minutes."
     alert:
       # Alert shown in the server console when the server stops.
-      console: Restarting to apply %d plugin updates.
+      console: "Restarting to apply %d plugin update(s)."
       # Alert broadcast to players before the server stops.
-      broadcast: The server is restarting to apply plugin updates.
+      broadcast: "The server is restarting to apply plugin updates."
 
 
 # Config file version for internal use. DO NOT EDIT.

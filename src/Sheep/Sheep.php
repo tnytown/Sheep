@@ -52,7 +52,7 @@ class Sheep {
 		return self::$instance;
 	}
 
-	public function install(string $plugin, string $version, ?Source $source): Promise {
+	public function install(string $plugin, string $version, ?Source $source = null): Promise {
 		$deferred = new Deferred();
 		if($source === null) {
 			$source = $this->defaultSource;
@@ -81,14 +81,14 @@ class Sheep {
 		return $deferred->promise();
 	}
 
-	public function info(string $plugin, string $version, ?Source $source): Promise {
+	public function info(string $plugin, string $version, ?Source $source = null): Promise {
 		if($source === null) {
 			$source = $this->defaultSource;
 		}
 		return $source->resolve($plugin, $version);
 	}
 
-	public function update(string $plugin, ?Source $source): Promise {
+	public function update(string $plugin, ?Source $source = null): Promise {
 		$deferred = new Deferred();
 		if($source === null) {
 			$source = $this->defaultSource;

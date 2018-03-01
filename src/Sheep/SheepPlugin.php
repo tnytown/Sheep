@@ -25,6 +25,7 @@ namespace Sheep;
 
 
 use pocketmine\plugin\PluginBase;
+use pocketmine\utils\Config;
 use Sheep\Async\PMAsyncHandler;
 use Sheep\Command\CommandManager;
 use Sheep\Command\InfoCommand;
@@ -33,6 +34,8 @@ use Sheep\Command\UpdateCommand;
 use Sheep\Source\SourceManager;
 use Sheep\Store\FileStore;
 use Sheep\Store\Store;
+use Sheep\Updater\UpdateHandler;
+use Sheep\Updater\UpdaterTask;
 use Sheep\Utils\ScanTask;
 
 class SheepPlugin extends PluginBase {
@@ -44,6 +47,8 @@ class SheepPlugin extends PluginBase {
 	private $sourceManager;
 	/** @var CommandManager */
 	private $commandManager;
+	/** @var UpdateHandler */
+	private $updateHandler;
 
 	public function onEnable() {
 		if(!$this->isPhar()) {
@@ -54,19 +59,26 @@ class SheepPlugin extends PluginBase {
 		include_once($this->getFile() . "/vendor/autoload.php");
 		self::defineOnce("Sheep\\PLUGIN_PATH", constant("pocketmine\\PLUGIN_PATH"));
 
+		$this->saveDefaultConfig();
+		$this->getConfig()->setDefaults((new Config($this->getFile() . "/resources/config.yml", Config::YAML))->getAll());
+		$this->getConfig()->save();
+
 		$asyncHandler = new PMAsyncHandler($this->getServer()->getScheduler());
 		$this->api = Sheep::getInstance();
 		$this->api->init($asyncHandler, $store = new FileStore("sheep.lock"));
 		$this->store = $store;
 		$this->sourceManager = $this->api->getSourceManager();
 
-		$this->commandManager = new CommandManager();
-		$this->commandManager->register(new UpdateCommand());
-		$this->commandManager->register(new InfoCommand());
-		foreach($this->commandManager->getAll() as $command) {
-			$this->getServer()->getCommandMap()->register("sheep", new PMCommandProxy($command));
-		}
+		$this->updateHandler = new UpdateHandler($this->getServer(),
+			$this, $this->api, $this->store, $this->getConfig()->get("updater"));
 
+		$interval = $this->getConfig()->getNested("updater.interval") * UpdateHandler::MINUTES_TO_TICKS;
+		if($interval > 0)
+			$this->getServer()->getScheduler()
+			->scheduleRepeatingTask(new UpdaterTask($this, $this->updateHandler, $this->api, $this->store), $interval);
+
+
+		$this->initCommands();
 		$this->scan();
 
 		if(!defined("Sheep\\STARTED_UP")) $this->registerUpdater();
@@ -79,10 +91,21 @@ class SheepPlugin extends PluginBase {
 		}
 	}
 
+	private function initCommands() {
+		$this->commandManager = new CommandManager();
+		$this->commandManager->register(new UpdateCommand($this->updateHandler));
+		$this->commandManager->register(new InfoCommand());
+
+		foreach($this->commandManager->getAll() as $command) {
+			$this->getServer()->getCommandMap()->register("sheep", new PMCommandProxy($command));
+		}
+	}
+
 	private function registerUpdater() {
 		$store = $this->store;
 		register_shutdown_function(function() use (&$store) {
-			echo "[*] Sheep Updater is running...\n";
+			$count = 0;
+			printf("[*] Sheep Updater is running...\n");
 			foreach($store->getAll() as $plugin) {
 				switch($plugin["state"]) {
 					case PluginState::STATE_UPDATING:
@@ -91,10 +114,12 @@ class SheepPlugin extends PluginBase {
 							try {
 								\Phar::unlinkArchive($base . ".phar");
 							} catch(\PharException $exception) {
-								echo "[!] Sheep Updater failed for plugin \"{$plugin["name"]}\": {$exception->getMessage()}\n";
+								printf("[!] Sheep Updater failed for plugin \"%s\": %s\n",
+									$plugin["name"], $exception->getMessage());
 								break;
 							}
 							@rename($base . ".phar.update", $base . ".phar");
+							$count++;
 						}
 
 						$plugin["version"] = $plugin["update"];
@@ -109,6 +134,7 @@ class SheepPlugin extends PluginBase {
 				}
 			}
 
+			printf("[*] %d update(s) applied.\n", $count);
 			$store->persist();
 		});
 	}
@@ -116,6 +142,10 @@ class SheepPlugin extends PluginBase {
 	private function scan() {
 		$this->getLogger()->info("Scanning loaded plugins for changes...");
 		$this->getServer()->getScheduler()->scheduleTask(new ScanTask($this, $this->store));
+	}
+
+	public function onDisable() {
+		$this->getConfig()->save();
 	}
 
 	public function getSourceManager(): SourceManager {

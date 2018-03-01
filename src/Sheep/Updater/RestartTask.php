@@ -22,55 +22,55 @@
 declare(strict_types=1);
 
 
-namespace Sheep\Utils;
+namespace Sheep\Updater;
 
+use pocketmine\plugin\Plugin;
 use pocketmine\scheduler\PluginTask;
 use pocketmine\Server;
 use Sheep\PluginState;
-use Sheep\SheepPlugin;
+use Sheep\Store\Store;
 
 class RestartTask extends PluginTask {
 	/** @var Server */
 	private $server;
-	/** @var SheepPlugin */
-	private $plugin;
 
 	private $restartTick;
 	private $config;
+	private $store;
 
-	public function __construct(SheepPlugin $owner) {
+	public function __construct(Plugin $owner, Store $store) {
 		parent::__construct($owner);
 
-		$this->server = $this->plugin->getServer();
-		$this->plugin = $owner;
-		$this->config = $this->plugin->getConfig()->getNested("updater.restart");
+		$this->server = $this->getOwner()->getServer();
+		$this->config = $this->getOwner()->getConfig()->getNested("updater.restart");
 
-		$this->restartTick = $this->config["delay"];
+		$this->restartTick = $this->server->getTick() + $this->config["delay"] * UpdateHandler::MINUTES_TO_TICKS;
+		$this->store = $store;
 	}
 
 	public function onRun(int $currentTick) {
 		if($this->config["player-threshold"] !== 0 &&
 			count($this->server->getOnlinePlayers()) >= $this->config["player-threshold"]) {
-			$this->restartTick = $this->config["delay"];
+			$this->restartTick = $this->server->getTick() + (int) ($this->config["delay"] * UpdateHandler::MINUTES_TO_TICKS);
 			return;
 		}
 
 		if($currentTick < $this->restartTick) {
 			$this->message($this->config["warning"],
-				count($this->plugin->getStore()->getByState(PluginState::STATE_UPDATING)),
-				($this->restartTick - $currentTick) / 20);
+				count($this->store->getByState(PluginState::STATE_UPDATING)),
+				($this->restartTick - $currentTick) / (20 * 60));
 			return;
 		}
 
 		if($currentTick >= $this->restartTick) {
 			$this->message($this->config["alert"],
-				count($this->plugin->getStore()->getByState(PluginState::STATE_UPDATING)));
+				count($this->store->getByState(PluginState::STATE_UPDATING)));
 			$this->server->shutdown();
 		}
 	}
 
 	private function message(array $messages, ...$args) {
-		$this->plugin->getLogger()->warning(sprintf($messages["console"], ...$args));
+		$this->getOwner()->getLogger()->warning(sprintf($messages["console"], ...$args));
 		$this->server->broadcastMessage(sprintf($messages["broadcast"], ...$args));
 	}
 }
