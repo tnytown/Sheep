@@ -21,7 +21,7 @@
 declare(strict_types=1);
 
 
-namespace Sheep\Source;
+namespace Sheep\Store;
 
 class PluginNotFoundException extends \Exception {
 	public function __construct(string $plugin) {

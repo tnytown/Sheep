@@ -25,7 +25,6 @@ namespace Sheep\Store;
 
 
 use Sheep\Plugin;
-use Sheep\Source\PluginNotFoundException;
 
 interface Store {
 

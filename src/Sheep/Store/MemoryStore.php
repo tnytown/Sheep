@@ -25,7 +25,6 @@ namespace Sheep\Store;
 
 
 use Sheep\Plugin;
-use Sheep\Source\PluginNotFoundException;
 
 class MemoryStore implements Store {
 	protected $plugins = [];

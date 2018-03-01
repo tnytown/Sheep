@@ -26,7 +26,7 @@ namespace Sheep;
 use React\Promise\Deferred;
 use React\Promise\Promise;
 use Sheep\Async\AsyncHandler;
-use Sheep\Source\PluginNotFoundException;
+use Sheep\Store\PluginNotFoundException;
 use Sheep\Source\Source;
 use Sheep\Source\SourceManager;
 use Sheep\Store\Store;
