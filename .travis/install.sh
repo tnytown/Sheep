@@ -9,11 +9,11 @@ mkdir $pm_dir
 cd $pm_dir
 mkdir plugins/
 
-curl -fsL $pm_url -o server.phar
-curl -fsL $php_url -o php.tar.gz
-curl -fsL $dt_url -o plugins/DevTools.phar
+curl -fsL $pm_url -o $pm_dir/server.phar
+curl -fsL $php_url -o $pm_dir/php.tar.gz
+curl -fsL $dt_url -o $pm_dir/plugins/DevTools.phar
 
-tar -zxf php.tar.gz
+tar -zxf $pm_dir/php.tar.gz
 
 cp $TRAVIS_BUILD_DIR/.travis/PluginChecker.php plugins/
 tree
