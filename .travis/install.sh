@@ -13,6 +13,7 @@ curl -fsL $pm_url -o server.phar
 curl -fsL $php_url -o php.tar.gz
 curl -fsL $dt_url -o plugins/DevTools.phar
 
-PHP=bin/php7/bin/php
 tar -zxf php.tar.gz
+
 cp $TRAVIS_BUILD_DIR/.travis/PluginChecker.php plugins/
+tree
