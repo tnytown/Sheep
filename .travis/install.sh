@@ -10,9 +10,9 @@ mkdir $pm_dir
 cd $pm_dir
 mkdir plugins/
 
-curl -fsL $pm_url -o server.phar
-curl -fsL $php_url -o php.tar.gz
-curl -fsL $dt_url -o plugins/DevTools.phar
+curl -fL $pm_url -o server.phar
+curl -fL $php_url -o php.tar.gz
+curl -fL $dt_url -o plugins/DevTools.phar
 
 tar -zxf php.tar.gz
 
