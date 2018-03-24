@@ -77,11 +77,7 @@ abstract class Command {
 	public function getUsage(): string {
 		$str = $this->name;
 		foreach($this->args as $arg) {
-			if($arg[2]) { // required
-				$str .= " <{$arg[0]}>";
-			} else {
-				$str .= " [{$arg[0]}]";
-			}
+			$str .= " " . $arg[2] ? " <{$arg[0]}>" : " [{$arg[0]}]"; // required
 		}
 		return $str;
 	}
