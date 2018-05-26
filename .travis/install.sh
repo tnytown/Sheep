@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# php ext. install from pmmp/PocketMine-MP .travis.yml
+# php ext. install from pmmp/PocketMine-MP
 echo | pecl install channel://pecl.php.net/yaml-2.0.2
 git clone https://github.com/krakjoe/pthreads.git
 cd pthreads
@@ -12,6 +12,7 @@ make install
 cd ..
 echo "extension=pthreads.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
+# PM + devtools setup
 pm_url=$(curl -fsL "https://update.pmmp.io/api?channel=development" | jq -r ".download_url")
 dt_url=$(curl -fsL "https://poggit.pmmp.io/releases.json?name=DevTools&latest-only" | jq -r ".[0].artifact_url")
 
