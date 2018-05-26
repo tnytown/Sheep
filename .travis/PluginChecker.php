@@ -3,7 +3,7 @@
  * @name PluginChecker
  * @author PEMapModder,KnownUnown
  * @version 1.0.0
- * @api 3.0.0-ALPHA11
+ * @api 3.0.0-ALPHA12
  * @main PluginChecker\PluginChecker
  */
 namespace PluginChecker;
