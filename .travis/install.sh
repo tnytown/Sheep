@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 pm_url=$(curl -fsL "https://update.pmmp.io/api?channel=development" | jq -r ".download_url")
-php_url="https://jenkins.pmmp.io/job/PHP-7.2-Aggregate/lastSuccessfulBuild/artifact/PHP_Linux-x86_64.tar.gz"
+php_url="https://jenkins.pmmp.io/job/PHP-7.2-Aggregate/lastSuccessfulBuild/artifact/PHP-7.2-Linux-x86_64.tar.gz"
 dt_url=$(curl -fsL "https://poggit.pmmp.io/releases.json?name=DevTools&latest-only" | jq -r ".[0].artifact_url")
 
 echo $pm_url
