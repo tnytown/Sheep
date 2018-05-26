@@ -37,7 +37,7 @@ class UninstallCommand extends Command {
 		$problem->print("Uninstalling plugin {$args["plugin"]}...");
 		$this->api->uninstall($args["plugin"])
 			->then(function() use (&$problem) {
-				$problem->print("Success!");
+				$problem->print("Success! Plugin will be removed at the next server restart.");
 			})
 			->otherwise(function(Error $error) use (&$problem) {
 				$problem->print("Failure: $error");
