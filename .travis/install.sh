@@ -1,7 +1,18 @@
 #!/usr/bin/env bash
 
+# php ext. install from pmmp/PocketMine-MP .travis.yml
+echo | pecl install channel://pecl.php.net/yaml-2.0.2
+git clone https://github.com/krakjoe/pthreads.git
+cd pthreads
+git checkout d32079fb4a88e6e008104d36dbbf0c2dd7deb403
+phpize
+./configure
+make
+make install
+cd ..
+echo "extension=pthreads.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+
 pm_url=$(curl -fsL "https://update.pmmp.io/api?channel=development" | jq -r ".download_url")
-php_url="https://jenkins.pmmp.io/job/PHP-7.2-Aggregate/lastSuccessfulBuild/artifact/PHP-7.2-Linux-x86_64.tar.gz"
 dt_url=$(curl -fsL "https://poggit.pmmp.io/releases.json?name=DevTools&latest-only" | jq -r ".[0].artifact_url")
 
 echo $pm_url
@@ -13,9 +24,6 @@ cd $pm_dir
 mkdir plugins/
 
 curl -fsL $pm_url -o server.phar
-curl -fsL $php_url -o php.tar.gz
 curl -fsL $dt_url -o plugins/DevTools.phar
-
-tar -zxf php.tar.gz
 
 cp $TRAVIS_BUILD_DIR/.travis/PluginChecker.php plugins/

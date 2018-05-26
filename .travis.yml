@@ -6,7 +6,6 @@ php:
 addons: # workaround for TLSv1.2
   apt:
     packages:
-      - libc6 # libmvec.so.1 is in glibc >= 2.22
       - libssl1.0.0
       - jq
 
