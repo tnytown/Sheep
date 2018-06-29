@@ -69,7 +69,7 @@ class SheepPlugin extends PluginBase {
 		$this->getConfig()->save();
 
 		$this->api = Sheep::getInstance();
-		$asyncHandler = new PMAsyncHandler($this->getServer()->getScheduler());
+		$asyncHandler = new PMAsyncHandler($this->getServer()->getAsyncPool()); // TODO: use own AsyncPool
 		CurlTask::setMetadata($this->getServer()->getName(), $this->getServer()->getPocketMineVersion());
 		$this->api->init($asyncHandler, $store = new FileStore("sheep.lock"));
 		$this->store = $store;
@@ -80,8 +80,8 @@ class SheepPlugin extends PluginBase {
 
 		$interval = $this->getConfig()->getNested("updater.interval") * UpdateHandler::MINUTES_TO_TICKS;
 		if($interval > 0)
-			$this->getServer()->getScheduler()
-			->scheduleRepeatingTask(new UpdaterTask($this, $this->updateHandler, $this->api, $this->store), $interval);
+			$this->getScheduler()
+				->scheduleRepeatingTask(new UpdaterTask($this->updateHandler, $this->api, $this->store), $interval);
 
 
 		$this->initCommands();
@@ -147,7 +147,7 @@ class SheepPlugin extends PluginBase {
 
 	private function scan() {
 		$this->getLogger()->info("Scanning loaded plugins for changes...");
-		$this->getServer()->getScheduler()->scheduleTask(new ScanTask($this, $this->store));
+		$this->getScheduler()->scheduleTask(new ScanTask($this->store));
 	}
 
 	public function onDisable() {

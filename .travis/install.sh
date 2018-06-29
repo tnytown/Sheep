@@ -13,7 +13,7 @@ cd ..
 echo "extension=pthreads.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
 # PM + devtools setup
-pm_url=$(curl -fsL "https://update.pmmp.io/api?channel=development" | jq -r ".download_url")
+pm_url=$(curl -fsL "https://update.pmmp.io/api?channel=stable" | jq -r ".download_url")
 dt_url=$(curl -fsL "https://poggit.pmmp.io/releases.json?name=DevTools&latest-only" | jq -r ".[0].artifact_url")
 
 echo $pm_url

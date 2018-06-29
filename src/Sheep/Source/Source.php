@@ -49,7 +49,7 @@ interface Source {
 	/**
 	 * Installs a given Plugin.
 	 *
-	 * @param Plugin|Plugin[] ...$plugin The plugin(s) in question.
+	 * @param Plugin ...$plugin The plugin(s) in question.
 	 * @return Promise
 	 */
 	public function install(Plugin... $plugin): Promise;

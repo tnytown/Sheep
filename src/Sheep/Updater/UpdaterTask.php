@@ -24,14 +24,14 @@ declare(strict_types=1);
 namespace Sheep\Updater;
 
 
-use pocketmine\plugin\Plugin;
-use pocketmine\scheduler\PluginTask;
+use pocketmine\scheduler\Task;
+use pocketmine\Server;
 use Sheep\PluginState;
 use Sheep\Sheep;
 use Sheep\Source\SourceNotFoundException;
 use Sheep\Store\Store;
 
-class UpdaterTask extends PluginTask {
+class UpdaterTask extends Task {
 	private $logger;
 	private $config;
 
@@ -39,11 +39,12 @@ class UpdaterTask extends PluginTask {
 	private $api;
 	private $store;
 
-	public function __construct(Plugin $owner, UpdateHandler $handler, Sheep $api, Store $store) {
-		parent::__construct($owner);
+	public function __construct(UpdateHandler $handler, Sheep $api, Store $store) {
+		$plugin = Server::getInstance()->getPluginManager()->getPlugin("Sheep");
 
-		$this->logger = $owner->getLogger();
-		$this->config = $owner->getConfig()->getNested("updater");
+		$this->logger = $plugin->getLogger();
+		$this->config = $plugin->getConfig()->getNested("updater");
+
 		$this->updateHandler = $handler;
 		$this->api = $api;
 		$this->store = $store;

@@ -23,24 +23,24 @@ declare(strict_types=1);
 
 namespace Sheep\Updater;
 
-use pocketmine\plugin\Plugin;
-use pocketmine\scheduler\PluginTask;
+use pocketmine\scheduler\Task;
+use pocketmine\Server;
 use Sheep\PluginState;
 use Sheep\Store\Store;
 
-class NagTask extends PluginTask {
+class NagTask extends Task {
 	private $store;
 	private $message;
 
-	public function __construct(Plugin $owner, Store $store, string $message) {
-		parent::__construct($owner);
-
+	public function __construct(Store $store, string $message) {
 		$this->store = $store;
 		$this->message = $message;
 	}
 
 	public function onRun(int $currentTick) {
-		$this->getOwner()->getLogger()->warning(
+		$logger = Server::getInstance()->getPluginManager()->getPlugin("Sheep")->getLogger();
+
+		$logger->warning(
 			sprintf($this->message, count($this->store->getByState(PluginState::STATE_UPDATING))));
 	}
 }

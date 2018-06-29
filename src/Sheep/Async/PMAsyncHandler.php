@@ -24,23 +24,23 @@ declare(strict_types=1);
 namespace Sheep\Async;
 
 
-use pocketmine\scheduler\ServerScheduler;
+use pocketmine\scheduler\AsyncPool;
 use React\Promise\Deferred;
 use React\Promise\Promise;
 use Sheep\Async\Task\CurlTask;
 use Sheep\Async\Task\WriteTask;
 
 class PMAsyncHandler implements AsyncHandler {
-	private $scheduler;
+	private $async;
 
-	public function __construct(ServerScheduler $scheduler) {
-		$this->scheduler = $scheduler;
+	public function __construct(AsyncPool $async) {
+		$this->async = $async;
 	}
 
 	public function getURL(string $url, int $timeout = 10, array $extraHeaders = []): Promise {
 		$deferred = new Deferred();
 
-		$this->scheduler->scheduleAsyncTask(new CurlTask($url, CurlOptions::CURL_GET,
+		$this->async->submitTask(new CurlTask($url, CurlOptions::CURL_GET,
 			function(string $result, string $error) use (&$deferred) {
 				if($error) {
 					$deferred->reject($error);
@@ -59,7 +59,7 @@ class PMAsyncHandler implements AsyncHandler {
 	public function write(string $file, string $data): Promise {
 		$deferred = new Deferred();
 
-		$this->scheduler->scheduleAsyncTask(new WriteTask($file, $data,
+		$this->async->submitTask(new WriteTask($file, $data,
 			function(bool $ok) use (&$deferred) {
 				if(!$ok) {
 					$deferred->reject($ok);

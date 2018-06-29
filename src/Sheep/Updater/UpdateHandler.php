@@ -51,14 +51,14 @@ class UpdateHandler {
 		if($this->tasksRegistered) return;
 		$this->tasksRegistered = true;
 		if($this->config["nag"]["interval"] !== 0 && !$this->isRestartEnabled()) {
-			$this->server->getScheduler()
-					->scheduleRepeatingTask(new NagTask($this->plugin, $this->store, $this->config["nag"]["message"]),
+			$this->plugin->getScheduler()
+					->scheduleRepeatingTask(new NagTask($this->store, $this->config["nag"]["message"]),
 						(int) ($this->config["nag"]["interval"] * self::MINUTES_TO_TICKS));
 		}
 
 		$restartInterval = (int) ($this->config["restart"]["warning"]["interval"] * self::MINUTES_TO_TICKS);
 		if($this->isRestartEnabled())
-			$this->server->getScheduler()
+			$this->plugin->getScheduler()
 				->scheduleRepeatingTask(new RestartTask($this->plugin, $this->store),
 					$restartInterval !== 0
 						? $restartInterval : ($this->config["restart"]["delay"] * self::MINUTES_TO_TICKS));

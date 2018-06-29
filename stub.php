@@ -58,6 +58,4 @@ namespace Sheep {
 	}
 }
 
-
 __HALT_COMPILER();
-

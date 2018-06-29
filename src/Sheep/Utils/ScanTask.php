@@ -25,21 +25,21 @@ namespace Sheep\Utils;
 
 
 use pocketmine\plugin\Plugin;
-use pocketmine\scheduler\PluginTask;
+use pocketmine\scheduler\Task;
+use pocketmine\Server;
 use Sheep\PluginState;
 use Sheep\Sheep;
 use Sheep\Store\Store;
 
-class ScanTask extends PluginTask {
+class ScanTask extends Task {
 	private $store;
 
-	public function __construct(Plugin $owner, Store $store) {
-		parent::__construct($owner);
+	public function __construct(Store $store) {
 		$this->store = $store;
 	}
 
 	public function onRun(int $currentTick) {
-		$server = $this->getOwner()->getServer();
+		$server = Server::getInstance();
 		$sheep = Sheep::getInstance();
 
 		foreach($server->getPluginManager()->getPlugins() as $plugin) {

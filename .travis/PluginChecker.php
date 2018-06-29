@@ -1,23 +1,27 @@
 <?php
+declare(strict_types=1);
 /**
  * @name PluginChecker
  * @author PEMapModder,KnownUnown
  * @version 1.0.0
- * @api 3.0.0-ALPHA12
+ * @api 3.0.0
  * @main PluginChecker\PluginChecker
  */
 namespace PluginChecker;
+use pocketmine\Server;
+
 class PluginChecker extends \pocketmine\plugin\PluginBase {
 	public function onEnable() {
-		$this->getServer()->getScheduler()->scheduleDelayedTask(new CheckTask($this), 1);
+		$this->getScheduler()->scheduleDelayedTask(new CheckTask(), 1);
 	}
 }
-class CheckTask extends \pocketmine\scheduler\PluginTask {
+class CheckTask extends \pocketmine\scheduler\Task {
 	public function onRun(int $t){
-		$plugin = $this->owner->getServer()->getPluginManager()->getPlugin(
-			$this->owner->getServer()->getProperty("pluginchecker.target"));
+		$server = Server::getInstance();
+		$plugin = $server->getPluginManager()->getPlugin(
+			$server->getProperty("pluginchecker.target"));
 
-		if($plugin !== null && $plugin->isEnabled()) $this->owner->getServer()->shutdown();
+		if($plugin !== null && $plugin->isEnabled()) $server->shutdown();
 		else exit(1);
 	}
 }

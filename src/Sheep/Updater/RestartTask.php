@@ -25,24 +25,25 @@ declare(strict_types=1);
 namespace Sheep\Updater;
 
 use pocketmine\plugin\Plugin;
-use pocketmine\scheduler\PluginTask;
+use pocketmine\scheduler\Task;
 use pocketmine\Server;
 use Sheep\PluginState;
 use Sheep\Store\Store;
 
-class RestartTask extends PluginTask {
+class RestartTask extends Task {
 	/** @var Server */
 	private $server;
+	private $plugin;
 
 	private $restartTick;
 	private $config;
 	private $store;
 
 	public function __construct(Plugin $owner, Store $store) {
-		parent::__construct($owner);
+		$this->server = Server::getInstance();
+		$this->plugin = $this->server->getPluginManager()->getPlugin("Sheep");
 
-		$this->server = $this->getOwner()->getServer();
-		$this->config = $this->getOwner()->getConfig()->getNested("updater.restart");
+		$this->config = $this->plugin->getConfig()->getNested("updater.restart");
 
 		$this->restartTick = $this->server->getTick() + $this->config["delay"] * UpdateHandler::MINUTES_TO_TICKS;
 		$this->store = $store;
@@ -70,7 +71,7 @@ class RestartTask extends PluginTask {
 	}
 
 	private function message(array $messages, ...$args) {
-		$this->getOwner()->getLogger()->warning(sprintf($messages["console"], ...$args));
+		$this->plugin->getLogger()->warning(sprintf($messages["console"], ...$args));
 		$this->server->broadcastMessage(sprintf($messages["broadcast"], ...$args));
 	}
 }
